@@ -1,0 +1,24 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- Cargo imagen ------------------------------------------------------------
+img = cv2.imread('TP1/Imagen_con_detalles_escondidos.tif',cv2.IMREAD_GRAYSCALE) 
+img.shape
+plt.imshow(img, cmap='gray')
+plt.show(block=False)  
+
+# *RECORTE 1 
+recorte1 = img[7:68, 7:68]
+img_heq = cv2.equalizeHist(recorte1)
+plt.imshow(recorte1, cmap='gray')
+plt.show(block=False) 
+
+# img_fl = recorte1.flatten()
+# img_fl.shape
+# pix_vals = np.unique(recorte1)            
+# pix_vals
+# hist, bins = np.histogram(recorte1.flatten(), 256, [0, 256]) 
+# hist2 = cv2.calcHist([recorte1], [0], None, [256], [0, 256]) # Más rápida que np.histogram()
+# max(abs(hist.flatten() - hist2.flatten()))
+

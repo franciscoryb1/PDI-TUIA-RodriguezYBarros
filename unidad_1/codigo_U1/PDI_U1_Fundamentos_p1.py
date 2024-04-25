@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # --- Leo imagen --------------------------------------------------
-img = cv2.imread('xray-chest.png',cv2.IMREAD_GRAYSCALE)  # https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_gui/py_image_display/py_image_display.html
+img = cv2.imread('unidad_1/codigo_U1/xray-chest.png',cv2.IMREAD_GRAYSCALE)  # https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_gui/py_image_display/py_image_display.html
 # img = cv2.imread('xray-chest.png')
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
