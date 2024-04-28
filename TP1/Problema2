@@ -1,0 +1,504 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+img1 = cv2.imread('TP1/multiple_choice_1.png',cv2.IMREAD_GRAYSCALE)
+plt.imshow(img1, cmap='gray')
+plt.show()
+
+# Vamos a binarizar la img haciendo que sea solo blanco o negro para que despues podamos trabajar mejor
+# Los niveles por debajo de 244 van a ser negro y el resto blanco 
+# Elegimos estos umbrales probando. Si elegiamos el umbral mas alto quedaban algunos pixeles 
+#al rededor de los circulos de las letras con valores 250-254 que quedaban afuera del rango
+_, img_binarizada = cv2.threshold(img1, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_binarizada, cmap='gray')
+plt.show()
+
+# Como el encabezado esta siempre en la misma posicion podemos generalizar y recortarlo 
+#para quedarnos solo con la parte del examen
+rec = img_binarizada[160:, :]
+plt.imshow(rec, cmap='gray')
+plt.show(block=False)
+
+#################################################################################################
+#################################################################################################
+#################################################################################################
+#################################################################################################
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# def correccion(multiple_choice):
+    
+#     img = cv2.imread('TP1/multiple_choice_{}.png'.format(multiple_choice),cv2.IMREAD_GRAYSCALE)
+
+
+img1 = cv2.imread('multiple_choice_1.png',cv2.IMREAD_GRAYSCALE)
+plt.imshow(img1, cmap='gray')
+plt.show()
+
+# Vamos a binarizar la img haciendo que sea solo blanco o negro para que despues podamos trabajar mejor
+# Los niveles por debajo de 244 van a ser negro y el resto blanco 
+# Elegimos estos umbrales probando. Si elegiamos el umbral mas alto quedaban algunos pixeles 
+#al rededor de los circulos de las letras con valores 250-254 que quedaban afuera del rango
+_, img_binarizada = cv2.threshold(img1, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_binarizada, cmap='gray')
+plt.show()
+
+# Utilizo la img binarizada porque en la img original hay algunos valores que causan problemas 
+#(dividen el circulo en algunos puntos), y de esta forma no
+
+# Como el encabezado esta siempre en la misma posicion podemos generalizar y recortarlo 
+#para quedarnos solo con la parte del examen
+rec = img_binarizada[160:, :]
+plt.imshow(rec, cmap='gray')
+plt.show(block=False)
+
+# Identifico las Filas
+rec_row_zeros = rec.any(axis=1)
+rec_row_zeros_idxs = np.argwhere(rec.any(axis=1))
+plt.imshow(rec, cmap='gray')
+xr = np.arange(rec.shape[0])
+yr = rec_row_zeros*(rec.shape[1]-1)
+plt.plot(yr, xr, c='r')
+plt.show(block=False) 
+
+x = np.diff(rec)
+renglones_indxs = np.argwhere(x) 
+len(renglones_indxs)
+
+# *** Modifico índices ***********
+ii = np.arange(0,len(renglones_indxs),2)
+renglones_indxs[ii]+=1
+
+# Re-ordeno los índices en grupos de a 2 (inicio-final)
+x_indxs = renglones_indxs[:(len(renglones_indxs)//2)*2]
+x_indxs = x_indxs.reshape((-1,2))
+
+# Obtengo renglones 
+renglones = []
+for ir, idxs in enumerate(x_indxs):
+    renglon_img = rec[idxs[0]:idxs[1], :]
+    renglones.append({
+        "ir": ir+1,
+        "cord": idxs,
+        "img": rec[idxs[0]:idxs[1],:]
+    })
+
+
+plt.figure()
+for ii, renglon in enumerate(renglones):
+    # plt.subplot(2,2,ii+1)
+    plt.figure()
+    plt.imshow(renglon["img"], cmap='gray')
+    plt.title(f"Renglón {ii+1}")
+plt.show(block=False)   
+
+# Mostrar la imagen completa con los renglones marcados
+plt.imshow(rec, cmap='gray')
+for renglon in renglones:
+    plt.axhline(y=renglon["cord"][0], color='r', linestyle='-')  # Dibujar una línea horizontal para cada renglón
+plt.show(block=False)
+
+
+# Columnas
+# img_col_zeros = img_zeros.any(axis=0)
+# img_col_zeros_idxs = np.argwhere(img_zeros.any(axis=0))
+# plt.imshow(img1, cmap='gray')
+# xc = np.arange(img1.shape[1])
+# yc = img_col_zeros*(img1.shape[0]-1)
+# plt.plot(xc, yc, c='b')
+# plt.show(block=False)  
+
+'''
+1) Existen varias formas de detectar las celdas donde se marcan las respuestas,
+una de ellas es detectando las coordenadas de las líneas verticales y horizontales
+que alinean dichas celdas. Para ello, una opción es primero umbralar la imagen
+img_th = img<th y luego sumar el valor de los pixels que están en cada columna
+para detectar las líneas verticales img_cols = np.sum(img_th_ones,0) y sumar
+el valor de los pixels que están en cada fila para detectar las líneas horizontales
+img_rows = np.sum(img_th_ones,1). Luego, dado que en dichas líneas existen
+muchos más pixels que en las demás partes del formulario, se puede definir un
+umbral acorde (uno para las líneas horizontales y otro para las líneas verticales) y
+detectar así las posiciones de las mismas. Por ejemplo: img_rows_th =
+mg_rows>th_row. Tenga en cuenta que las líneas pueden tener más de un pixel
+de ancho, por lo cual, quizás deba encontrar el principio y el fin de las mismas en
+la variable img_rows_th.
+Esta misma técnica se puede utilizar para detectar las líneas del encabezado y
+obtener subimagenes de los campos del mismo.
+'''
+
+img1 = cv2.imread('multiple_choice_1.png',cv2.IMREAD_GRAYSCALE)
+plt.imshow(img1, cmap='gray')
+plt.show()
+
+# primero umbralar la imagen
+# img_th = img<th
+
+_, img_umbralada = cv2.threshold(img1, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_umbralada, cmap='gray')
+plt.show()
+
+rec = img_umbralada[160:, :]
+plt.imshow(rec, cmap='gray')
+plt.show(block=False)
+
+# sumar el valor de los pixels que están en cada columna
+# para detectar las líneas verticales 
+# img_cols = np.sum(img_th_ones,0)
+
+# Sumar los valores de los píxeles en cada columna y fila
+img_cols_sum = np.sum(rec, axis=0)
+img_rows_sum = np.sum(rec, axis=1)
+
+# y sumar el valor de los pixels que están en cada fila para detectar las líneas horizontales
+# img_rows = np.sum(img_th_ones,1).
+
+# Definir umbrales para las líneas horizontales y verticales
+th_row = 0.83 * np.max(img_rows_sum)  # Umbral para líneas horizontales
+th_col = 0.80 * np.max(img_cols_sum)  # Umbral para líneas verticales
+
+# img_rows_th = mg_rows>th_row.
+# Detectar las posiciones de las líneas horizontales y verticales
+img_rows_th = img_rows_sum > th_row
+img_cols_th = img_cols_sum > th_col
+
+
+# Por ejemplo, para las líneas horizontales:
+inicio = 0
+for i in range(len(img_rows_th)):
+    if img_rows_th[i] and not img_rows_th[i-1]:
+        inicio = i
+    if not img_rows_th[i] and img_rows_th[i-1]:
+        fin = i
+        print("Línea horizontal encontrada en las filas:", inicio, "-", fin)
+
+# Por ejemplo, para las líneas verticales:
+inicio = 0
+for i in range(len(img_cols_th)):
+    if img_cols_th[i] and not img_cols_th[i-1]:
+        inicio = i
+    if not img_cols_th[i] and img_cols_th[i-1]:
+        fin = i
+        print("Línea horizontal encontrada en las filas:", inicio, "-", fin)
+
+
+# Crear una imagen RGB para visualización
+img_color = cv2.cvtColor(rec, cv2.COLOR_GRAY2RGB)
+
+# Dibujar líneas horizontales
+for i in range(len(img_rows_th)):
+    if img_rows_th[i]:
+        cv2.line(img_color, (0, i), (img_color.shape[1], i), (0, 255, 0), 2)
+
+# Dibujar líneas verticales
+for i in range(len(img_cols_th)):
+    if img_cols_th[i]:
+        cv2.line(img_color, (i, 0), (i, img_color.shape[0]), (0, 255, 0), 2)
+
+# Mostrar la imagen con las líneas detectadas
+plt.imshow(img_color)
+plt.axis('off')
+plt.show()
+
+####################################################################################################
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Umbralamos la imagen
+img_umbral = rec < 244
+
+# Mostramos la imagen umbralizada
+plt.imshow(img_umbral, cmap='gray')
+plt.title("Imagen Umbralizada")
+plt.show()
+
+# Buscar las columnas externas del formulario
+# Suma de columnas para encontrarlas
+img_columnas = np.sum(img_umbral, axis=0)
+
+# Umbralamos la suma de pixeles, las columnas son las que más pixeles tienen, con el valor
+# elegido nos va a dar True en las columnas
+img_columnas_umbral = img_columnas > 30
+
+# Buscamos los valores de los índices en los que están dichas columnas
+img_cols_indices = np.argwhere(img_columnas_umbral).reshape(1, -1)
+
+# Repetimos con las filas para buscar todos los bordes que componen cada una de ellas
+img_filas = np.sum(img_umbral, axis=1)
+img_filas_umbral = img_filas < 500
+img_filas_indices = np.argwhere(img_filas_umbral).reshape(1, -1)
+
+# Visualizar las filas y columnas en la imagen umbralizada
+plt.imshow(img_umbral, cmap='gray')
+
+# Dibujar líneas de columnas
+for col_idx in img_cols_indices[0]:
+    plt.axvline(x=col_idx, color='r', linestyle='--', linewidth=1)
+
+# Dibujar líneas de filas
+for row_idx in img_filas_indices[0]:
+    plt.axhline(y=row_idx, color='b', linestyle='--', linewidth=1)
+
+plt.title("Imagen Umbralizada con Filas y Columnas Marcadas")
+plt.show()
+
+#################################################################################################
+
+
+#Binarizamos la imagen con un Threshold de 128 <-- porque de 128 y no otro numero?
+th = 244 # 128 esta por encima de los dos valores por eso detecta ambos y por consiguiente se crean la row 497 y 498
+img_th = rec<th # Porque menor a 128 y no mayor a 128?
+# "Visualizamos el formulario Binarizado"
+plt.imshow(img_th, cmap='gray'), plt.show()
+
+#Sumarizamos los pixeles que son 1 en el eje x para detectar las columnas
+img_cols = np.sum(img_th,axis=0)
+# print(img_cols)
+
+#Sumarizamos los pixeles que son 1 en el eje y para detectar las filas
+img_rows = np.sum(img_th,axis=1)
+
+#Definimos un threshold del 80% para detectar filas y columnas <-- porque del 80% y no otro porcentaje?
+th_rows = img_rows.max() * 0.6 # Si subis a 90% o bajas a 70% o 60% sigue funcionando
+th_cols = img_cols.max() * 0.6 # Esto es 60% no 80% porque?
+
+#Los usamos para detectar filas y columnas respectivamente
+rows_detected = np.where(img_rows > th_rows)[0]
+
+cols_detected = np.where(img_cols > th_cols)[0]
+
+# Visualizamos la imagen y las filas y columnas detectadas
+plt.imshow(img_th, cmap='gray')
+
+# Dibujar líneas horizontales en rojo para las filas
+for row in rows_detected: # Si hacemos print(len(rows_detected)) no dice que tiene 12 pero cuando se muestra 
+                            # la imagen solo hay 11 linea rojas? Si hacemos print(rows_detected) nos devuelve 
+                            # [ 21  61 101 141 181 221 261 301 341 381 497 498], hay un espacio de mas entre el 21 y 61 eso podria ser el causante 
+    plt.axhline(y=row, color='r', linestyle='-')
+plt.show()
+
+# Dibujar líneas verticales en azul para las columnas
+for col in cols_detected:
+    plt.axvline(x=col, color='b', linestyle='-')
+plt.show()
+
+
+#################################################################################################
+
+# Identifico las Filas
+rec_row_zeros = rec.any(axis=1)
+rec_row_zeros_idxs = np.argwhere(rec.any(axis=1))
+plt.imshow(rec, cmap='gray')
+xr = np.arange(rec.shape[0])
+yr = rec_row_zeros*(rec.shape[1]-1)
+plt.plot(yr, xr, c='r')
+plt.show(block=False) 
+
+# Obtener las coordenadas y límites de las filas
+coordenadas_filas = rec_row_zeros_idxs.reshape(-1)
+limites_renglones = []
+
+for i in range(0, len(coordenadas_filas), 2):
+    fila_inicial = coordenadas_filas[i]
+    if i + 1 < len(coordenadas_filas):
+        fila_final = coordenadas_filas[i + 1]
+    else:
+        fila_final = rec.shape[0] - 1
+    limites_renglones.append((fila_inicial, fila_final))
+
+#----------------------------------------------------------------------------------------------
+# Crear una copia de la imagen original para marcar los renglones
+img_con_renglones = np.copy(rec)  # Asumiendo que 'img' es tu imagen original
+
+# Dibujar líneas de renglones en la imagen copiada
+for coord in rec_row_zeros_idxs:
+    fila = coord[0]
+    cv2.line(img_con_renglones, (0, fila), (img_con_renglones.shape[1], fila), (0, 0, 255), 2)
+
+# Mostrar la imagen con los renglones marcados
+plt.imshow(img_con_renglones, cmap='gray')
+plt.title("Imagen con Renglones Marcados")
+plt.show()
+#-------------------------------------------------------------------------------------------------
+
+
+# Imprimir los límites de los renglones
+print("Límites de los renglones:")
+for renglon in limites_renglones:
+    print(f"Renglón {renglon[0]}-{renglon[1]}")
+
+# Dividir la imagen en renglones (pares de filas) y mostrar cada par
+for renglon in limites_renglones:
+    renglon_actual = rec[renglon[0]:renglon[1]+1, :]
+    plt.imshow(renglon_actual, cmap='gray')
+    plt.show()
+
+########################################################################################
+ 
+# Identifico las Filas
+rec_row_zeros = rec.any(axis=1)
+rec_row_zeros_idxs = np.argwhere(rec.any(axis=1))
+plt.imshow(rec, cmap='gray')
+xr = np.arange(rec.shape[0])
+yr = rec_row_zeros*(rec.shape[1]-1)
+plt.plot(yr, xr, c='r')
+plt.show(block=False) 
+
+# Crear una figura y un eje
+fig, ax = plt.subplots()
+
+# Iterar sobre los pares de valores en el array yr
+for i in range(0, len(yr), 2):
+    # Obtener las coordenadas y del par actual
+    y_inicio = yr[i]
+    y_fin = yr[i + 1]
+
+    # Trazar una línea horizontal entre las coordenadas y del par actual
+    ax.axhline(y_inicio, color='r')
+    ax.axhline(y_fin, color='r')
+
+# Mostrar la imagen
+plt.imshow(rec, cmap='gray')
+plt.show()
+
+#################################################################################################
+#################################################################################################
+#################################################################################################
+#################################################################################################
+
+linea12 = rec[350:385, :]
+plt.imshow(linea12, cmap='gray')
+plt.show()
+
+linea13 = rec[386:420, :]
+plt.imshow(linea13, cmap='gray')
+plt.show()
+
+linea14 = rec[418:448, :]
+plt.imshow(linea14, cmap='gray')
+plt.show()
+
+linea15 = rec[450:480, :]
+plt.imshow(linea15, cmap='gray')
+plt.show()
+
+linea16 = rec[480:508, :]
+plt.imshow(linea16, cmap='gray')
+plt.show()
+
+linea17 = rec[510:540, :]
+plt.imshow(linea17, cmap='gray')
+plt.show()
+
+linea18 = rec[546:570, :]
+plt.imshow(linea18, cmap='gray')
+plt.show()
+
+linea19 = rec[576:604, :]
+plt.imshow(linea19, cmap='gray')
+plt.show()
+
+linea20 = rec[605:635, :]
+plt.imshow(linea20, cmap='gray')
+plt.show()
+
+linea21 = rec[635:664, :]
+plt.imshow(linea21, cmap='gray')
+plt.show()
+
+linea22 = rec[664:698, :]
+plt.imshow(linea22, cmap='gray')
+plt.show()
+
+mc3 = cv2.imread('TP1/multiple_choice_3.png', cv2.IMREAD_GRAYSCALE)
+plt.imshow(mc3, cmap='gray')
+plt.show()
+
+_, img_binarizada3 = cv2.threshold(mc3, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_binarizada3, cmap='gray')
+plt.show()
+
+linea18_3 = img_binarizada3[784:814, :]
+plt.imshow(linea18_3, cmap='gray')
+plt.show()
+
+linea19_3 = img_binarizada3[814:842, :]
+plt.imshow(linea19_3, cmap='gray')
+plt.show()
+
+respuestas_correctas = [ 'A', 'C', 'C', 'D', 'B', 'A', 'C', 'C', 'D', 
+                        'B', 'A' , 'C', 'C']
+
+# Lista para almacenar los resultados
+resultados = []
+
+# Contador para saber cuantas respuestas correctas hay 
+resp_corr_cont = 0
+
+# Procesar cada línea
+for i, linea in enumerate([linea12, linea13, linea14, linea15, linea16, linea17, linea18, linea19, linea20, linea21, linea22, linea18_3, linea19_3]):
+
+    # 1. Detectar los contornos de los círculos
+    contornos, _ = cv2.findContours(linea, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # 2. Asignar índices a los círculos
+    circulos = []
+    for i, contorno in enumerate(contornos):
+        # Filtrar solo contornos con un área mínima
+        area = cv2.contourArea(contorno)
+        if area > 100:
+            circulos.append(contorno)
+
+    # Lista para almacenar la cantidad de píxeles blancos en cada círculo
+    pixeles_blancos = []
+
+    # 3. Contar píxeles blancos dentro de cada círculo
+    opciones = ['E', 'D', 'C', 'B', 'A']
+    pixeles_blancos = []
+    for circulo in circulos:
+        # Obtener el rectángulo delimitador del círculo
+        x, y, w, h = cv2.boundingRect(circulo)
+        
+        # Recortar el círculo
+        circulo_recortado = linea[y:y+h, x:x+w]
+        
+        # Contar píxeles blancos
+        pixeles_blancos.append(np.sum(circulo_recortado == 255))
+
+    # Verificar si ninguna opción está seleccionada
+    # la cantidad de pixeles blancos que tiene una opcion sin seleccionar son: 
+    #{E:179, D:167, C:164, B:187, A:195}, por eso usamos 200
+    if all(cantidad < 200 for cantidad in pixeles_blancos):
+        resultados.append(f"Pregunta {i+1}: MAL")
+        # print("¡Error! Ninguna opción seleccionada en la línea", i+1)
+    else:
+        # Imprimir la cantidad de píxeles blancos en cada círculo
+        # for i, cantidad in enumerate(pixeles_blancos):
+        #     print(f"Línea {i+1}, Círculo {opciones[i]} tiene {cantidad} píxeles blancos.")
+
+        # Verificar si hay más de una opción seleccionada
+        # cantidad_seleccionadas = sum(cantidad > 0 for cantidad in pixeles_blancos)
+        suma_pixeles = sum(pixeles_blancos)
+        if  suma_pixeles > 1100:
+            resultados.append(f"Pregunta {i+1}: MAL")
+            # print("¡Error! Más de una opción seleccionada en la línea", i+1)
+        else:
+            # Identificar la opción seleccionada
+            indice_opcion_seleccionada = np.argmax(pixeles_blancos)
+            opcion_seleccionada = opciones[indice_opcion_seleccionada]
+            if opcion_seleccionada == respuestas_correctas[i]:
+                resultados.append(f"Pregunta {i+1}: OK")
+                resp_corr_cont =+ 1
+            else:
+                resultados.append(f"Pregunta {i+1}: MAL")
+            # print("La opción seleccionada en la línea", i+1, "es:", opcion_seleccionada)
+
+# Imprimir resultados
+for resultado in resultados:
+    print(resultado)
+print(f"El examen tuvo {resp_corr_cont} respuestas correctas")
+print("Examen APROBADO" if resp_corr_cont >= 20 else "Examen DESAPROBADO")
+
