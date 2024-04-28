@@ -1,0 +1,155 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+img1 = cv2.imread('TP1/multiple_choice_1.png',cv2.IMREAD_GRAYSCALE)
+plt.imshow(img1, cmap='gray')
+plt.show()
+
+# Vamos a binarizar la img haciendo que sea solo blanco o negro para que despues podamos trabajar mejor
+# Los niveles por debajo de 244 van a ser negro y el resto blanco 
+# Elegimos estos umbrales probando. Si elegiamos el umbral mas alto quedaban algunos pixeles 
+#al rededor de los circulos de las letras con valores 250-254 que quedaban afuera del rango
+_, img_binarizada = cv2.threshold(img1, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_binarizada, cmap='gray')
+plt.show()
+
+# Como el encabezado esta siempre en la misma posicion podemos generalizar y recortarlo 
+#para quedarnos solo con la parte del examen
+rec = img_binarizada[160:, :]
+plt.imshow(rec, cmap='gray')
+plt.show(block=False)
+
+linea12 = rec[350:385, :]
+plt.imshow(linea12, cmap='gray')
+plt.show()
+
+linea13 = rec[386:420, :]
+plt.imshow(linea13, cmap='gray')
+plt.show()
+
+linea14 = rec[418:448, :]
+plt.imshow(linea14, cmap='gray')
+plt.show()
+
+linea15 = rec[450:480, :]
+plt.imshow(linea15, cmap='gray')
+plt.show()
+
+linea16 = rec[480:508, :]
+plt.imshow(linea16, cmap='gray')
+plt.show()
+
+linea17 = rec[510:540, :]
+plt.imshow(linea17, cmap='gray')
+plt.show()
+
+linea18 = rec[546:570, :]
+plt.imshow(linea18, cmap='gray')
+plt.show()
+
+linea19 = rec[576:604, :]
+plt.imshow(linea19, cmap='gray')
+plt.show()
+
+linea20 = rec[605:635, :]
+plt.imshow(linea20, cmap='gray')
+plt.show()
+
+linea21 = rec[635:664, :]
+plt.imshow(linea21, cmap='gray')
+plt.show()
+
+linea22 = rec[664:698, :]
+plt.imshow(linea22, cmap='gray')
+plt.show()
+
+mc3 = cv2.imread('TP1/multiple_choice_3.png', cv2.IMREAD_GRAYSCALE)
+plt.imshow(mc3, cmap='gray')
+plt.show()
+
+_, img_binarizada3 = cv2.threshold(mc3, 244, 255, cv2.THRESH_BINARY_INV)
+plt.imshow(img_binarizada3, cmap='gray')
+plt.show()
+
+linea18_3 = img_binarizada3[784:814, :]
+plt.imshow(linea18_3, cmap='gray')
+plt.show()
+
+linea19_3 = img_binarizada3[814:842, :]
+plt.imshow(linea19_3, cmap='gray')
+plt.show()
+
+respuestas_correctas = [ 'A', 'C', 'C', 'D', 'B', 'A', 'C', 'C', 'D', 
+                        'B', 'A' , 'C', 'C']
+
+# Lista para almacenar los resultados
+resultados = []
+
+# Contador para saber cuantas respuestas correctas hay 
+resp_corr_cont = 0
+
+# Procesar cada línea
+for i, linea in enumerate([linea12, linea13, linea14, linea15, linea16, linea17, linea18, linea19, linea20, linea21, linea22, linea18_3, linea19_3]):
+
+    # 1. Detectar los contornos de los círculos
+    contornos, _ = cv2.findContours(linea, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # 2. Asignar índices a los círculos
+    circulos = []
+    for i, contorno in enumerate(contornos):
+        # Filtrar solo contornos con un área mínima
+        area = cv2.contourArea(contorno)
+        if area > 100:
+            circulos.append(contorno)
+
+    # Lista para almacenar la cantidad de píxeles blancos en cada círculo
+    pixeles_blancos = []
+
+    # 3. Contar píxeles blancos dentro de cada círculo
+    opciones = ['E', 'D', 'C', 'B', 'A']
+    pixeles_blancos = []
+    for circulo in circulos:
+        # Obtener el rectángulo delimitador del círculo
+        x, y, w, h = cv2.boundingRect(circulo)
+        
+        # Recortar el círculo
+        circulo_recortado = linea[y:y+h, x:x+w]
+        
+        # Contar píxeles blancos
+        pixeles_blancos.append(np.sum(circulo_recortado == 255))
+
+    # Verificar si ninguna opción está seleccionada
+    # la cantidad de pixeles blancos que tiene una opcion sin seleccionar son: 
+    #{E:179, D:167, C:164, B:187, A:195}, por eso usamos 200
+    if all(cantidad < 200 for cantidad in pixeles_blancos):
+        resultados.append(f"Pregunta {i+1}: MAL")
+        # print("¡Error! Ninguna opción seleccionada en la línea", i+1)
+    else:
+        # Imprimir la cantidad de píxeles blancos en cada círculo
+        # for i, cantidad in enumerate(pixeles_blancos):
+        #     print(f"Línea {i+1}, Círculo {opciones[i]} tiene {cantidad} píxeles blancos.")
+
+        # Verificar si hay más de una opción seleccionada
+        # cantidad_seleccionadas = sum(cantidad > 0 for cantidad in pixeles_blancos)
+        suma_pixeles = sum(pixeles_blancos)
+        if  suma_pixeles > 1100:
+            resultados.append(f"Pregunta {i+1}: MAL")
+            # print("¡Error! Más de una opción seleccionada en la línea", i+1)
+        else:
+            # Identificar la opción seleccionada
+            indice_opcion_seleccionada = np.argmax(pixeles_blancos)
+            opcion_seleccionada = opciones[indice_opcion_seleccionada]
+            if opcion_seleccionada == respuestas_correctas[i]:
+                resultados.append(f"Pregunta {i+1}: OK")
+                resp_corr_cont =+ 1
+            else:
+                resultados.append(f"Pregunta {i+1}: MAL")
+            # print("La opción seleccionada en la línea", i+1, "es:", opcion_seleccionada)
+
+# Imprimir resultados
+for resultado in resultados:
+    print(resultado)
+print(f"El examen tuvo {resp_corr_cont} respuestas correctas")
+print("Examen APROBADO" if resp_corr_cont >= 20 else "Examen DESAPROBADO")
+
