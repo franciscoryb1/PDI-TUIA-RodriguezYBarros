@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from roipoly import RoiPoly     # https://pypi.org/project/roipoly/
 
 # --- Cargo imagen y selecciono ROI --------------------------------------
-img = cv2.imread("cameraman.tif", cv2.IMREAD_GRAYSCALE)
+img = cv2.imread("unidad_1/codigo_U1/cameraman.tif", cv2.IMREAD_GRAYSCALE)
 plt.imshow(img, cmap="gray")
 my_roi = RoiPoly(color='r') 
 

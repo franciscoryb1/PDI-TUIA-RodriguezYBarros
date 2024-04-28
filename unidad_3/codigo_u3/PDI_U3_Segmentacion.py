@@ -295,7 +295,7 @@ imshow(LoG_zth, title="LoG + Zero Corssing + Umbral")
 
 
 # --- Componentes conectadas -----------------------------------------------------------------------
-img = cv2.imread('objects.tif', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('unidad_3/codigo_u3/objects.tif', cv2.IMREAD_GRAYSCALE)
 connectivity = 8
 num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img, connectivity, cv2.CV_32S)  # https://docs.opencv.org/4.5.3/d3/dc0/group__imgproc__shape.html#ga107a78bf7cd25dec05fb4dfc5c9e765f
 # --- Otra opcion ----------------
