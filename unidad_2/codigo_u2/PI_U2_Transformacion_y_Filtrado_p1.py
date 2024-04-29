@@ -17,8 +17,8 @@ def imadjust(x, vin=None, vout=[0,255], gamma=1):
         y = np.uint8(np.clip(np.round(y), 0, 255))   # Numpy underflows/overflows para valores fuera de rango, se debe utilizar clip.
     return y
 
-# img = cv2.imread('cameraman.tif',cv2.IMREAD_GRAYSCALE)
-img = cv2.imread('xray-chest.png',cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('cameraman.tif',cv2.IMREAD_GRAYSCALE)
+# img = cv2.imread('xray-chest.png',cv2.IMREAD_GRAYSCALE)
 img_adj1 = imadjust(img)
 img_adj2 = imadjust(img, vin=[50,80])
 

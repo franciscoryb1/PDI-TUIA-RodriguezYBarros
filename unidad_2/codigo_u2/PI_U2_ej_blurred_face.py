@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # --- Imagen Original ---------------------------------------
-img = cv2.imread("MonaLisa.jpg")
+img = cv2.imread("unidad_2/codigo_u2/MonaLisa.jpg")
 plt.imshow(img), plt.show(block=False)   # Acá puede observarse que la imagen está en BGR....
 
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)          # Re-acomodo los planos: BGR --> RGB
