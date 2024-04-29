@@ -36,7 +36,8 @@ def analizar_imagen_rasgos_letras(img):
 
     # Elimina los elementos de "stats_filtrados" que están en "repetidos"
     stats_filtrado = [arr for arr in stats_filtrado if not any((arr == elem).all() for elem in repetidos)]
-
+    # if len(stats_filtrado) < 1:
+    #     espacios_entre_letras = -1
     salida = {
         "Caracteres": len(stats_filtrado),
         "Espacios": espacios_entre_letras,

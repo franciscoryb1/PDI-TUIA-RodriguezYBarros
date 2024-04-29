@@ -26,26 +26,57 @@ for examen in examenes:
     d_code = analizar_imagen_rasgos_letras(code)
     d_fecha = analizar_imagen_rasgos_letras(fecha)
 
+
     print("EXAMEN:", examen)
-    #Imprimo d_nombre
-    print("- NOMBRE:")
-    print("--- CARACTERES:", d_nombre["Caracteres"])
-    print("--- PALABRAS:", d_nombre["Palabras"])
+    # Nombre
+    if d_nombre["Caracteres"] > 25 or d_nombre["Caracteres"] == 0 or  d_nombre["Palabras"] < 2:
+        print("Nombre: Mal")
+    else:
+        print("Nombre: Ok")
+    
+    # Id
+    if d_id["Caracteres"] > 8 or d_id["Caracteres"] == 0 or d_id["Palabras"] > 1:
+        print("Id: Mal")
+    else:
+        print("Id: Ok")
+    
+    # Code
+    if d_code["Caracteres"] == 1:
+        print("Code: Ok")
+    else:
+        print("Code: Mal")
+    
+    # Fecha
+    if d_fecha["Caracteres"] > 8 or d_fecha["Caracteres"] == 0 or d_fecha["Palabras"] > 1:
+        print("fecha: Mal")
+    else:
+        print("fecha: Ok")
 
-    #Imprimo d_id
-    print("- ID:")
-    print("--- CARACTERES:", d_id["Caracteres"])
-    print("--- PALABRAS:", d_id["Palabras"])
 
-    #Imprimo d_code
-    print("- CODE:")
-    print("--- CARACTERES:", d_code["Caracteres"])
-    print("--- PALABRAS:", d_code["Palabras"])
 
-    #Imprimo d_fecha
-    print("- FECHA:")
-    print("--- CARACTERES:", d_fecha["Caracteres"])
-    print("--- PALABRAS:", d_fecha["Palabras"])
+    
+
+
+    # print("EXAMEN:", examen)
+    # #Imprimo d_nombre
+    # print("- NOMBRE:")
+    # print("--- CARACTERES:", d_nombre["Caracteres"])
+    # print("--- PALABRAS:", d_nombre["Palabras"])
+
+    # #Imprimo d_id
+    # print("- ID:")
+    # print("--- CARACTERES:", d_id["Caracteres"])
+    # print("--- PALABRAS:", d_id["Palabras"])
+
+    # #Imprimo d_code
+    # print("- CODE:")
+    # print("--- CARACTERES:", d_code["Caracteres"])
+    # print("--- PALABRAS:", d_code["Palabras"])
+
+    # #Imprimo d_fecha
+    # print("- FECHA:")
+    # print("--- CARACTERES:", d_fecha["Caracteres"])
+    # print("--- PALABRAS:", d_fecha["Palabras"])
 
 
 
