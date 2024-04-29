@@ -10,6 +10,8 @@ examenes = ["TP1/multiple_choice_1.png",
             "TP1/multiple_choice_4.png",
             "TP1/multiple_choice_5.png"]
 
+nombres = []
+
 for examen in examenes:
     # Cargo la imagen
     img = cv2.imread(examen,cv2.IMREAD_GRAYSCALE)
@@ -17,6 +19,7 @@ for examen in examenes:
     encabezado = img[108:130, 30:750]
     # Corto cada campo
     nombre = encabezado[0:20, 70:250]
+    nombres.append(nombre)
     id = encabezado[0:20, 300:400]
     code = encabezado[0:20, 460:535]
     fecha = encabezado[0:20, 619:725]
@@ -27,30 +30,65 @@ for examen in examenes:
     d_fecha = analizar_imagen_rasgos_letras(fecha)
 
 
-    print("EXAMEN:", examen)
-    # Nombre
-    if d_nombre["Caracteres"] > 25 or d_nombre["Caracteres"] == 0 or  d_nombre["Palabras"] < 2:
-        print("Nombre: Mal")
-    else:
-        print("Nombre: Ok")
+# Leer la primera imagen para obtener sus dimensiones
+
+    # Dimensiones de la imagen
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Crear la imagen con fondo blanco
+image = np.ones((500, 400), dtype=np.uint8) * 255
+
+y = 40
+x = 40
+
+for nombre in nombres:
+    # nombre = nombres[0]
+    nombre.shape
+    image[x:x+20, y:y+180] = nombre
+
+    # Definir la fuente, tamaño de fuente y color
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    tamanio_fuente = 0.5
+    color = (0, 0)  # Color en formato BGR (azul, verde, rojo)
+
+    # Escribir el texto en la imagen compuesta
+    imagen_con_texto = cv2.putText(image, "Aprobo", (y+250, x+20), font, tamanio_fuente, color, thickness=2)
+
+    x += 100
+    # Mostrar la imagen
+plt.imshow(image, cmap='gray')
+plt.show()
+
+
+
+
+
+
+    # print("EXAMEN:", examen)
+    # # Nombre
+    # if d_nombre["Caracteres"] > 25 or d_nombre["Caracteres"] == 0 or  d_nombre["Palabras"] < 2:
+    #     print("Nombre: Mal")
+    # else:
+    #     print("Nombre: Ok")
     
-    # Id
-    if d_id["Caracteres"] > 8 or d_id["Caracteres"] == 0 or d_id["Palabras"] > 1:
-        print("Id: Mal")
-    else:
-        print("Id: Ok")
+    # # Id
+    # if d_id["Caracteres"] > 8 or d_id["Caracteres"] == 0 or d_id["Palabras"] > 1:
+    #     print("Id: Mal")
+    # else:
+    #     print("Id: Ok")
     
-    # Code
-    if d_code["Caracteres"] == 1:
-        print("Code: Ok")
-    else:
-        print("Code: Mal")
+    # # Code
+    # if d_code["Caracteres"] == 1:
+    #     print("Code: Ok")
+    # else:
+    #     print("Code: Mal")
     
-    # Fecha
-    if d_fecha["Caracteres"] > 8 or d_fecha["Caracteres"] == 0 or d_fecha["Palabras"] > 1:
-        print("fecha: Mal")
-    else:
-        print("fecha: Ok")
+    # # Fecha
+    # if d_fecha["Caracteres"] > 8 or d_fecha["Caracteres"] == 0 or d_fecha["Palabras"] > 1:
+    #     print("fecha: Mal")
+    # else:
+    #     print("fecha: Ok")
 
 
 
