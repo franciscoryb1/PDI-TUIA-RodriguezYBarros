@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 # Cargamos la imagen
-img = cv2.imread('Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('TP1/Imagen_con_detalles_escondidos.tif', cv2.IMREAD_GRAYSCALE)
 
 def ecualizacion_local_histograma(img, ventana):
 

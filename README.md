@@ -26,5 +26,5 @@ Archivos necesarios: Los 5 archivos que contienen las imágenes de los multiple 
 Ejecución / Resultados
 a) devuelve si resolvió bien o mal cada item del multiple choice la persona de la imagen que nosotros pasamos en correccion(img1)
 b) devuelve si está bien o mal el encabezado de todos los exámenes
-c) 
+c) devuelve cuantas respuestas correctas tuvo la persona y si aprobó o no el examen
 d) devuelve una imagen con los nombres de los 5 exámenes y si aprobaron o no 
