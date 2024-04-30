@@ -2,10 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# def correccion(multiple_choice):
-    
-#     img = cv2.imread('TP1/multiple_choice_{}.png'.format(multiple_choice),cv2.IMREAD_GRAYSCALE)
-img1 = cv2.imread('multiple_choice_3.png',cv2.IMREAD_GRAYSCALE)
+# Ejercicio 2 A
+img1 = cv2.imread('TP1/multiple_choice_5.png',cv2.IMREAD_GRAYSCALE)
 
 def correccion(img1):
    
@@ -202,11 +200,11 @@ def analizar_imagen_rasgos_letras(img):
 
     return salida
 
-examenes = ["multiple_choice_1.png",
-            "multiple_choice_2.png",
-            "multiple_choice_3.png",
-            "multiple_choice_4.png",
-            "multiple_choice_5.png"]
+examenes = ["TP1/multiple_choice_1.png",
+            "TP1/multiple_choice_2.png",
+            "TP1/multiple_choice_3.png",
+            "TP1/multiple_choice_4.png",
+            "TP1/multiple_choice_5.png"]
 
 for examen in examenes:
     # Cargo la imagen
@@ -270,14 +268,15 @@ for examen in examenes:
 
 
 # Ejercicio 2D
-
 # Crear la imagen con fondo blanco
 image = np.ones((500, 400), dtype=np.uint8) * 255
+
+apro = ['APROBADO','NO APROBADO','NO APROBADO','NO APROBADO','NO APROBADO',]
 
 y = 40
 x = 40
 
-for nombre in nombres:
+for nombre,estado in zip(nombres,apro):
     # nombre = nombres[0]
     nombre.shape
     image[x:x+20, y:y+180] = nombre
@@ -289,18 +288,9 @@ for nombre in nombres:
     
 
     # Escribir el texto en la imagen compuesta
-    imagen_con_texto = cv2.putText(image, 'Aprobado', (y+250, x+20), font, tamanio_fuente, color, thickness=2)
+    imagen_con_texto = cv2.putText(image, estado, (y+200, x+20), font, tamanio_fuente, color, thickness=2)
 
     x += 100
     # Mostrar la imagen
 plt.imshow(image, cmap='gray')
 plt.show()
-
-# 1- APROBADO
-# 2- APROBADO
-# 3- NO APROBADO
-# 4- NO APROBADO
-# 5- NO APROBADO
-
-
-
