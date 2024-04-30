@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Ejercicio 2 A
-img1 = cv2.imread('TP1/multiple_choice_5.png',cv2.IMREAD_GRAYSCALE)
+img1 = cv2.imread('TP1/multiple_choice_1.png',cv2.IMREAD_GRAYSCALE)
 
 def correccion(img1):
    
