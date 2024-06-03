@@ -34,7 +34,7 @@ blurred_img = cv2.GaussianBlur(img_gris, ksize=(3, 3), sigmaX=1.5)
 # Aplico el algoritmo Canny para detectar bordes
 edges1 = cv2.Canny(blurred_img, 0.04*255, 0.10*255)
 edges2 = cv2.Canny(blurred_img, 0.35*255, 0.4*255)
-edges3 = cv2.Canny(blurred_img, 0.20*255, 0.75*255)
+edges3 = cv2.Canny(blurred_img, 0.20*255, 0.80*255)
 
 # Muestro los distintos umbrales de canny
 plt.figure(figsize=(10, 5))
@@ -45,20 +45,25 @@ plt.imshow(edges1, cmap='gray')
 plt.axis('off')
 
 plt.subplot(1, 3, 2)
-plt.title('Canny - U1:0.40% | U2:0.50%')
+plt.title('Canny - U1:0.35% | U2:0.40%')
 plt.imshow(edges2, cmap='gray')
 plt.axis('off')
 
 plt.subplot(1, 3, 3)
-plt.title('Canny - U1:0.40% | U2:0.80%')
+plt.title('Canny - U1:0.20% | U2:0.75%')
 plt.imshow(edges3, cmap='gray')
 plt.axis('off')
 
 plt.show()
 
 #Gradiente morfológico
-se = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
-f_mg = cv2.morphologyEx(edges3, cv2.MORPH_GRADIENT, se)
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(15,7))
+f_mg = cv2.morphologyEx(edges3, cv2.MORPH_GRADIENT, kernel)
+imshow(f_mg)
+
+#Clausura
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,1))
+f_mg = cv2.morphologyEx(edges3, cv2.MORPH_CLOSE, kernel)
 imshow(f_mg)
 
 # Muestro la imagen con suavizado, la imagen con los bordes detectados y gradiente morfológico
@@ -107,14 +112,19 @@ imshow(img=im_color, color_img=True)
 
 #ESTO NO LO APLIQUE TODAVÍA PORQUE NO LOGRO QUE ME TOME EL CHIP ENTERO
 
-# Definir las coordenadas del bounding box para el chip
-x, y, width, height = 50, 50, 200, 150
-
-# Bounding Box
-cnt = contours[12]
-x,y,w,h = cv2.boundingRect(cnt)
-f = cv2.imread('contornos.png')
-cv2.drawContours(f, cnt, contourIdx=-1, color=(255, 0, 0), thickness=2)
-cv2.rectangle(f, (x,y), (x+w,y+h), color=(255, 0, 255), thickness=2)
-cv2.imshow('boundingRect', f)
-
+# Coloreamos los elementos
+labels = np.uint8(255/num_labels*labels)
+# imshow(img=labels)
+im_color = cv2.applyColorMap(labels, cv2.COLORMAP_JET)
+for centroid in centroids:
+    cv2.circle(im_color, tuple(np.int32(centroid)), 9, color=(255,255,255), thickness=-1)
+for st in stats:
+    if (300 <= st[2] <= 350) and (50<= st[3] <= 90):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+    if (80 <= st[2] <= 100) and (320<= st[3] <= 350):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+    if (310 <= st[2] <= 330) and (580<= st[3] <= 600):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,0,255), thickness=4)
+    if (170 <= st[2] <= 190) and (190<= st[3] <= 210):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(255,0,0), thickness=4)  
+imshow(img=im_color , color_img=True)             
