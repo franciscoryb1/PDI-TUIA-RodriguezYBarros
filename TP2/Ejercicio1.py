@@ -20,16 +20,35 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
 
 
 # Cargo Imagen
-img = cv2.imread('placa.png')
+img = cv2.imread('TP2/placa.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.figure(); plt.imshow(img), plt.show(block=False)
 
 # Convierto la imagen a escala de grises
 img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+# Probamos aplicando apertura y luego un filtro gaussiano 
+se = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
+fop = cv2.morphologyEx(img_gris, cv2.MORPH_OPEN, se)
+
 # Aplico un filtro Gaussiano de suavizado. fui probando distintos tamaños de kernels y sigmaX 
-blurred_img = cv2.GaussianBlur(img_gris, ksize=(3, 3), sigmaX=1.5)
-#plt.figure(), plt.imshow(blurred_img, cmap="gray"), plt.show(block=False)
+blurred_img = cv2.GaussianBlur(fop, ksize=(3, 3), sigmaX=1.5)
+
+
+plt.figure(figsize=(10, 5))
+
+ax1 = plt.subplot(1, 2, 1)
+plt.title('apertura')
+plt.imshow(fop, cmap='gray')
+plt.axis('off')
+
+plt.subplot(1,2,2, sharex=ax1, sharey=ax1)
+plt.title('gaussiano')
+plt.imshow(blurred_img, cmap='gray')
+plt.axis('off')
+
+plt.show()
+
 
 # Aplico el algoritmo Canny para detectar bordes
 edges1 = cv2.Canny(blurred_img, 0.04*255, 0.10*255)
@@ -39,17 +58,17 @@ edges3 = cv2.Canny(blurred_img, 0.20*255, 0.80*255)
 # Muestro los distintos umbrales de canny
 plt.figure(figsize=(10, 5))
 
-plt.subplot(1, 3, 1)
+ax2 = plt.subplot(1, 3, 1)
 plt.title('Canny - U1:0.04% | U2:0.10%')
 plt.imshow(edges1, cmap='gray')
 plt.axis('off')
 
-plt.subplot(1, 3, 2)
+plt.subplot(1, 3, 2,  sharex=ax2, sharey=ax2)
 plt.title('Canny - U1:0.35% | U2:0.40%')
 plt.imshow(edges2, cmap='gray')
 plt.axis('off')
 
-plt.subplot(1, 3, 3)
+plt.subplot(1, 3, 3,  sharex=ax2, sharey=ax2)
 plt.title('Canny - U1:0.20% | U2:0.75%')
 plt.imshow(edges3, cmap='gray')
 plt.axis('off')
