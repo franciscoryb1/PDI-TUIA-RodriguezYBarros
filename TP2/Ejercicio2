@@ -19,7 +19,7 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
         plt.show(block=blocking)
 
 # Cargo Imagen
-img = cv2.imread('TP2/Patentes/img01.png')
+img = cv2.imread('TP2/Patentes/img11.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.figure(); plt.imshow(img), plt.show(block=False)
 
@@ -35,12 +35,12 @@ plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
 blurred = cv2.GaussianBlur(img_gris, (5, 5), 0)
 plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
 
-img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-
-# _, img_binarizada = cv2.threshold(img_gris, 128, 255, cv2.THRESH_BINARY)
+# img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 # plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-# np.unique(img_binarizada)
+
+_, img_binarizada = cv2.threshold(img_gris, 128, 255, cv2.THRESH_BINARY)
+plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+np.unique(img_binarizada)
 
 
 # Encontrar contornos en la imagen umbralizada

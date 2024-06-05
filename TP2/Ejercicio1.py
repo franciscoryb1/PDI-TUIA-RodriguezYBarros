@@ -27,12 +27,17 @@ plt.figure(); plt.imshow(img), plt.show(block=False)
 # Convierto la imagen a escala de grises
 img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# Probamos aplicando apertura y luego un filtro gaussiano 
-se = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-fop = cv2.morphologyEx(img_gris, cv2.MORPH_OPEN, se)
 
 # Aplico un filtro Gaussiano de suavizado. fui probando distintos tamaños de kernels y sigmaX 
-blurred_img = cv2.GaussianBlur(fop, ksize=(3, 3), sigmaX=1.5)
+# blurred_img = cv2.GaussianBlur(img_gris, ksize=(3, 3), sigmaX=1.5)
+blurred_img = cv2.medianBlur(img_gris, ksize=5)
+
+# img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+# plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+
+_, img_binarizada = cv2.threshold(blurred_img, 100, 255, cv2.THRESH_BINARY)
+plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+np.unique(img_binarizada)
 
 
 plt.figure(figsize=(10, 5))
@@ -51,39 +56,50 @@ plt.show()
 
 
 # Aplico el algoritmo Canny para detectar bordes
-edges1 = cv2.Canny(blurred_img, 0.04*255, 0.10*255)
+# edges1 = cv2.Canny(blurred_img, 0.04*255, 0.10*255)
 edges2 = cv2.Canny(blurred_img, 0.35*255, 0.4*255)
-edges3 = cv2.Canny(blurred_img, 0.20*255, 0.80*255)
+edges3 = cv2.Canny(blurred_img, 0.20*255, 0.80*255) # ESTE SE USA PARA CAPACITORES Y CHIP
+edges4 = cv2.Canny(blurred_img, 0.20*255, 0.60*255)
+edges5 = cv2.Canny(blurred_img, 0.20*255, 0.40*255)
 
 # Muestro los distintos umbrales de canny
 plt.figure(figsize=(10, 5))
 
-ax2 = plt.subplot(1, 3, 1)
-plt.title('Canny - U1:0.04% | U2:0.10%')
-plt.imshow(edges1, cmap='gray')
+ax2 = plt.subplot(1, 4, 1)
+plt.title('Canny - U1:0.2% | U2:0.60% - 4')
+plt.imshow(edges4, cmap='gray')
 plt.axis('off')
 
-plt.subplot(1, 3, 2,  sharex=ax2, sharey=ax2)
-plt.title('Canny - U1:0.35% | U2:0.40%')
+plt.subplot(1, 4, 2,  sharex=ax2, sharey=ax2)
+plt.title('Canny - U1:0.35% | U2:0.40% - 2')
 plt.imshow(edges2, cmap='gray')
 plt.axis('off')
 
-plt.subplot(1, 3, 3,  sharex=ax2, sharey=ax2)
-plt.title('Canny - U1:0.20% | U2:0.75%')
+plt.subplot(1, 4, 3,  sharex=ax2, sharey=ax2)
+plt.title('Canny - U1:0.20% | U2:0.75% - 3')
 plt.imshow(edges3, cmap='gray')
 plt.axis('off')
 
+plt.subplot(1, 4, 4,  sharex=ax2, sharey=ax2)
+plt.title('Canny - U1:0.20% | U2:0.40% - 5')
+plt.imshow(edges5, cmap='gray')
+plt.axis('off')
 plt.show()
 
 #Gradiente morfológico
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(15,7))
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
 f_mg = cv2.morphologyEx(edges3, cv2.MORPH_GRADIENT, kernel)
 imshow(f_mg)
 
+# Probamos aplicando apertura y luego un filtro gaussiano 
+se = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+fop = cv2.morphologyEx(f_mg, cv2.MORPH_OPEN, se)
+imshow(fop)
+
 #Clausura
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,1))
-f_mg = cv2.morphologyEx(edges3, cv2.MORPH_CLOSE, kernel)
-imshow(f_mg)
+# kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,1))
+# f_mg = cv2.morphologyEx(edges3, cv2.MORPH_CLOSE, kernel)
+# imshow(f_mg)
 
 # Muestro la imagen con suavizado, la imagen con los bordes detectados y gradiente morfológico
 plt.figure(figsize=(10, 5))
@@ -129,7 +145,19 @@ for st in stats:
     cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=2)
 imshow(img=im_color, color_img=True)
 
-#ESTO NO LO APLIQUE TODAVÍA PORQUE NO LOGRO QUE ME TOME EL CHIP ENTERO
+#ESTO ES PARA EL CHIP
+
+# Coloreamos los elementos
+labels = np.uint8(255/num_labels*labels)
+# imshow(img=labels)
+im_color = cv2.applyColorMap(labels, cv2.COLORMAP_JET)
+for centroid in centroids:
+    cv2.circle(im_color, tuple(np.int32(centroid)), 9, color=(255,255,255), thickness=-1)
+for st in stats:
+    if (300 <= st[2] <= 350) and (50<= st[3] <= 90):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+imshow(img=im_color , color_img=True) 
+
 
 # Coloreamos los elementos
 labels = np.uint8(255/num_labels*labels)
