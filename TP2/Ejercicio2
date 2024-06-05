@@ -27,13 +27,14 @@ plt.figure(); plt.imshow(img), plt.show(block=False)
 img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
 
-_, img_binarizada = cv2.threshold(img_gris, 148, 255, cv2.THRESH_BINARY)
+_, img_binarizada = cv2.threshold(img_gris, 146, 255, cv2.THRESH_BINARY)
 plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
 np.unique(img_binarizada)
 
 
 # Encontrar contornos en la imagen umbralizada
 contours, hierarchy = cv2.findContours(img_binarizada, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
 # Dibujar los contornos en una imagen en blanco
 contour_img = np.zeros_like(img_binarizada)
 cv2.drawContours(contour_img, contours, -1, (255, 255, 255), thickness=cv2.FILLED)
@@ -49,26 +50,33 @@ stats = sorted(stats, key=lambda x: x[0])
 # height: Altura del rectángulo delimitador del componente. (stats[:, 3])
 # area: Área del componente en píxeles. (stats[:, 4])
 
-
-# Crear una nueva imagen en blanco para los componentes filtrados
+# Crear una nueva imagen en negro para los componentes filtrados
 filtered_img = np.zeros(contour_img.shape, dtype=np.uint8)
 
 # Crear una lista para almacenar los puntos iniciales y los centroides de los componentes filtrados
 filtered_components = []
 
+patente = np.zeros_like(labels)
+
 # Recorrer cada componente conectado
 for i in range(1, num_labels):  # Saltamos la etiqueta 0, que es el fondo
     # Obtener el área del componente
-    area = stats[i, 4]
+    area = stats[i][4]
     
     # Si el área es igual a 2100, añadir el componente a la imagen filtrada
     if 2000 < area < 2300:
+        print(area)
+        print(i)
+        print(stats[i])
+        print(labels == i)
+        # patente[labels == i] = 255
         filtered_img[labels == i] = 255
         # Punto inicial (superior izquierdo)
-        top_left_x = stats[i, 0]
-        top_left_y = stats[i, 1]
+        top_left_x = stats[i][0]
+        top_left_y = stats[i][1]
         # Centroide
         centroid_x, centroid_y = centroids[i]
+        # filtered_img[patente == 255] = 255
 
         # Añadir a la lista de componentes filtrados
         filtered_components.append({
@@ -81,6 +89,19 @@ plt.figure(); plt.imshow(filtered_img, cmap='gray'), plt.show(block=False)
 
 semilla = filtered_components[0]['top_left']
 
+componente_interes = np.uint8(labels == 194) * 255
+
+# Encuentra todos los puntos blancos en la imagen del componente de interés
+puntos_blancos = cv2.findNonZero(componente_interes)
+
+# Itera sobre cada punto blanco y obtén sus coordenadas
+coordenadas = []
+for punto in puntos_blancos:
+    x, y = punto[0]  # El punto es una matriz de una fila con dos elementos (x, y)
+    coordenadas.append((x, y))
+
+# Ahora puedes pintar estos puntos de 255 en otra imagen si lo deseas
+imagen_pintada = np.zeros_like(componente_interes)  # Crea una imagen en blanco del mismo tamaño que tu componente de interés
 # ---------------------------------------------------------------------------------------
 # --- Reconstrucción Morgológica --------------------------------------------------------
 # ---------------------------------------------------------------------------------------
