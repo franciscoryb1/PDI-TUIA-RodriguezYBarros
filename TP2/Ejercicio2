@@ -27,9 +27,20 @@ plt.figure(); plt.imshow(img), plt.show(block=False)
 img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
 
-_, img_binarizada = cv2.threshold(img_gris, 146, 255, cv2.THRESH_BINARY)
+# Aplicar un filtro Gaussiano para reducir el ruido
+# blurred = cv2.GaussianBlur(img_gris, (3, 3), 0)
+# plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
+
+# Aplicar un filtro Gaussiano para reducir el ruido
+blurred = cv2.GaussianBlur(img_gris, (5, 5), 0)
+plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
+
+img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-np.unique(img_binarizada)
+
+# _, img_binarizada = cv2.threshold(img_gris, 128, 255, cv2.THRESH_BINARY)
+# plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+# np.unique(img_binarizada)
 
 
 # Encontrar contornos en la imagen umbralizada
@@ -56,24 +67,39 @@ filtered_img = np.zeros(contour_img.shape, dtype=np.uint8)
 # Crear una lista para almacenar los puntos iniciales y los centroides de los componentes filtrados
 filtered_components = []
 
-patente = np.zeros_like(labels)
+# Recorrer cada contorno y filtrar por área 
+for contour in contours:
+    x, y, width, height = cv2.boundingRect(contour)
+    # x, y, width, height, area = stats[contour]
+    area = cv2.contourArea(contour)
+    
+    # Ajustar estos parámetros según sea necesario
+    if 2000 < area < 2300 :
+        cv2.drawContours(filtered_img, [contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+
+# Mostrar la imagen con los componentes filtrados
+plt.figure(); plt.imshow(filtered_img, cmap='gray'), plt.show(block=False)
+
+
+
+
+# Crear una nueva imagen en negro para los componentes filtrados
+filtered_img = np.zeros(contour_img.shape, dtype=np.uint8)
+
+# Crear una lista para almacenar los puntos iniciales y los centroides de los componentes filtrados
+filtered_components = []
 
 # Recorrer cada componente conectado
 for i in range(1, num_labels):  # Saltamos la etiqueta 0, que es el fondo
-    # Obtener el área del componente
-    area = stats[i][4]
-    
+    # Obtener las estadísticas del componente
+    x, y, width, height, area = stats[i]
+
     # Si el área es igual a 2100, añadir el componente a la imagen filtrada
     if 2000 < area < 2300:
-        print(area)
-        print(i)
-        print(stats[i])
-        print(labels == i)
-        # patente[labels == i] = 255
         filtered_img[labels == i] = 255
         # Punto inicial (superior izquierdo)
-        top_left_x = stats[i][0]
-        top_left_y = stats[i][1]
+        top_left_x = x
+        top_left_y = y
         # Centroide
         centroid_x, centroid_y = centroids[i]
         # filtered_img[patente == 255] = 255
@@ -182,3 +208,42 @@ plt.subplot(224, sharex=ax1, sharey=ax1); imshow(img_fh, new_fig=False, title="R
 plt.show(block=False)
 ####################################################################################################################################################
 ####################################################################################################################################################
+
+# Cargar la imagen
+image_path = 'TP2/Patentes/img01.png'
+image = cv2.imread(image_path)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Aplicar un filtro Gaussiano para reducir el ruido
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
+
+# Aplicar la detección de bordes Canny
+edges = cv2.Canny(blurred, 50, 150)
+plt.figure(); plt.imshow(edges, cmap='gray'), plt.show(block=False)
+
+# Encontrar los contornos en la imagen de bordes
+contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+# Filtrar los contornos para encontrar la patente
+for contour in contours:
+    # Aproximar el contorno
+    approx = cv2.approxPolyDP(contour, 0.02 * cv2.arcLength(contour, True), True)
+    if len(approx) == 4:  # Los contornos de la patente suelen ser rectángulos
+        x, y, w, h = cv2.boundingRect(approx)
+        aspect_ratio = w / float(h)
+        if 2 < aspect_ratio < 6:  # La relación de aspecto típica de una patente
+            if 1000 < cv2.contourArea(contour) < 5000:  # Filtrar por área
+                # Dibujar el contorno encontrado
+                cv2.drawContours(image, [approx], -1, (0, 255, 0), 3)
+                # Guardar la imagen de la patente
+                plate = gray[y:y+h, x:x+w]
+                cv2.imwrite('/mnt/data/patente_detectada.png', plate)
+                break
+
+# Mostrar la imagen original con el contorno de la patente
+plt.figure(figsize=(10, 6))
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.title('Imagen con patente detectada')
+plt.axis('off')
+plt.show()
