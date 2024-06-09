@@ -32,29 +32,6 @@ img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 # blurred_img = cv2.GaussianBlur(img_gris, ksize=(3, 3), sigmaX=1.5)
 blurred_img = cv2.medianBlur(img_gris, ksize=5)
 
-# img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-# plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-
-#_, img_binarizada = cv2.threshold(blurred_img, 100, 255, cv2.THRESH_BINARY)
-#plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-#np.unique(img_binarizada)
-
-
-# plt.figure(figsize=(10, 5))
-
-# ax1 = plt.subplot(1, 2, 1)
-# plt.title('apertura')
-# plt.imshow(fop, cmap='gray')
-# plt.axis('off')
-
-# plt.subplot(1,2,2, sharex=ax1, sharey=ax1)
-# plt.title('median')
-# plt.imshow(blurred_img, cmap='gray')
-# plt.axis('off')
-
-# plt.show()
-
-
 # Aplico el algoritmo Canny para detectar bordes
 edges1 = cv2.Canny(blurred_img, 0.04*255, 0.10*255)
 edges2 = cv2.Canny(blurred_img, 0.35*255, 0.4*255)
@@ -95,16 +72,6 @@ plt.show()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
 f_mg = cv2.morphologyEx(edges3, cv2.MORPH_GRADIENT, kernel)
 imshow(f_mg)
-
-# Probamos aplicando apertura y luego un filtro gaussiano 
-#se = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-#fop = cv2.morphologyEx(f_mg, cv2.MORPH_OPEN, se)
-#imshow(fop)
-
-#Clausura
-# kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,1))
-# f_mg = cv2.morphologyEx(edges3, cv2.MORPH_CLOSE, kernel)
-# imshow(f_mg)
 
 # Muestro la imagen con suavizado, la imagen con los bordes detectados y gradiente morfológico
 plt.figure(figsize=(10, 5))
@@ -184,23 +151,6 @@ for st in stats:
         cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,255), thickness=4) 
 imshow(img=im_color , color_img=True) 
 
-
-# # Crear una copia de la imagen original para pintar el chip
-# original_img = cv2.imread('TP2/placa.png')  
-# for st in stats:
-#     if (285 <= st[2] <= 315) and (590 <= st[3] <= 610):
-#         x, y, w, h = st[0], st[1], st[2], st[3]
-#         cv2.rectangle(im_color, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=4)
-        
-#         # Pintar la ROI de blanco en la imagen original
-#         original_img[y:y+h, x:x+w] = 255
-
-# # Guardar la imagen modificada
-# cv2.imwrite('imagen_con_chip_blanco.png', original_img)
-
-# imshow(img=original_img, color_img=True, title="Imagen con chip pintado de blanco")
-
-
 # Crear una copia de la imagen original para pintar los capacitores y el chip
 original_img = cv2.imread('TP2/placa.png')  # Cambia esta ruta a la ruta de tu imagen original
 
@@ -208,7 +158,7 @@ original_img = cv2.imread('TP2/placa.png')  # Cambia esta ruta a la ruta de tu i
 regiones_a_pintar = []
 
 for st in stats:
-    # Rellena los sectores de los capacitores con blanco 
+    # Rellena los sectores de los capacitores con negro 
     if (490 <= st[2] <= 520) and (600 <= st[3] <= 650):
         cv2.rectangle(im_color, (st[0], st[1]), (st[0] + st[2], st[1] + st[3]), color=(0, 255, 0), thickness=4)
         regiones_a_pintar.append((st[0], st[1], st[2], st[3]))
@@ -235,19 +185,15 @@ for st in stats:
         cv2.rectangle(im_color, (st[0], st[1]), (st[0] + st[2], st[1] + st[3]), color=(0, 255, 0), thickness=4)
         regiones_a_pintar.append((st[0], st[1], st[2], st[3]))
 
-# Pintar las ROI de blanco en la imagen original
+# Pintar las ROI de negro en la imagen original
 for x, y, w, h in regiones_a_pintar:
-    original_img[y:y+h, x:x+w] = 255
+    original_img[y:y+h, x:x+w] = 0
 
 # Guardar la imagen modificada
-cv2.imwrite('imagen_con_capacitores_y_chip_blancos.png', original_img)
+cv2.imwrite('imagen_con_capacitores_y_chip_negros.png', original_img)
 
-# Mostrar la imagen con los capacitores pintados de blanco usando la función imshow
-imshow(img=original_img, color_img=True, title="Imagen con capacitores y chip pintados de blanco")
-
-
-
-
+# Mostrar la imagen con los capacitores pintados de negro usando la función imshow
+imshow(img=original_img, color_img=True, title="Imagen con capacitores y chip pintados de negro")
 
 # Crear una img en negro para poner los elementos 
 
@@ -296,7 +242,7 @@ imshow(img=img_negra, color_img=True, title="Imagen negra con elementos en sus p
 
 
 
-# REPETIMOS LO QUE HICIMOS ANTES PERO CON LA IMG NUEVA QUE TIENE LOS CAPACITORES Y EL CHIP PINTADOS DE BLANCO 
+# REPETIMOS LO QUE HICIMOS ANTES PERO CON LA IMG NUEVA QUE TIENE LOS CAPACITORES Y EL CHIP PINTADOS DE NEGRO 
 
 # Cargo Imagen
 img2 = cv2.imread('imagen_con_capacitores_y_chip_blancos.png')
@@ -306,8 +252,14 @@ plt.figure(); plt.imshow(img2), plt.show(block=False)
 # Convierto la imagen a escala de grises
 img_gris2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
+#binarizamos la imagen para resaltar las resistencias
+_, img_binarizada = cv2.threshold(img_gris2, 130, 255, cv2.THRESH_BINARY)
+plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+
+
 # Aplico un filtro Gaussiano de suavizado. fui probando distintos tamaños de kernels y sigmaX 
-blurred_img2 = cv2.medianBlur(img_gris2, ksize=5)
+blurred_img2 = cv2.medianBlur(img_binarizada, ksize=5)
+plt.figure(); plt.imshow(blurred_img2, cmap='gray'), plt.show(block=False)
 
 # Aplico el algoritmo Canny para detectar bordes
 edges1_2 = cv2.Canny(blurred_img2, 0.50*255, 0.18*255)
@@ -345,9 +297,14 @@ plt.imshow(edges5_2, cmap='gray')
 plt.axis('off')
 plt.show()
 
+#Clausura
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(20,1))
+c_img2 = cv2.morphologyEx(edges4_2, cv2.MORPH_CLOSE, kernel)
+imshow(c_img2)
+
 #Gradiente morfológico
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
-f_mg2 = cv2.morphologyEx(edges5_2, cv2.MORPH_GRADIENT, kernel)
+f_mg2 = cv2.morphologyEx(c_img2, cv2.MORPH_GRADIENT, kernel)
 imshow(f_mg2)
 
 connectivity = 8
@@ -363,33 +320,57 @@ for st in stats:
     cv2.rectangle(im_color2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=2)
 imshow(img=im_color2, color_img=True)
 
+# Detectamos las resistencias 
 
-# #faltaría eso y guardar la imagen solo con los boxes que esto de acá no sirve
-# def mask_image(image_path, bounding_boxes):
-#     # Lee la imagen
-#     image = cv2.imread(image_path)
-    
-#     # Crea una máscara del mismo tamaño que la imagen, inicialmente toda negra
-#     mask = np.zeros(image.shape[:2], dtype=np.uint8)
-    
-#     # Dibuja rectángulos blancos en la máscara para cada bounding box
-#     for box in bounding_boxes:
-#         x, y, w, h = box
-#         cv2.rectangle(mask, (x, y), (x + w, y + h), (255), thickness=-1)
-    
-#     # Aplica la máscara a la imagen original
-#     result = cv2.bitwise_and(image, image, mask=mask)
-    
-#     return result
+# Coloreamos los elementos
+labels = np.uint8(255/num_labels*labels)
+# imshow(img=labels)
+im_color = cv2.applyColorMap(labels, cv2.COLORMAP_JET)
+for centroid in centroids:
+    cv2.circle(im_color, tuple(np.int32(centroid)), 9, color=(255,255,255), thickness=-1)
+for st in stats:
+    if (60 <= st[2] <= 80) and (260<= st[3] <= 290):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+    if (240 <= st[2] <= 300) and (60<= st[3] <= 80):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4) 
+    if (240 <= st[2] <= 300) and (100<= st[3] <= 120):
+        cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+imshow(img=im_color , color_img=True) 
 
-# # Ejemplo de uso
-# image_path = 'ruta/a/tu/imagen.jpg'
-# bounding_boxes = [(50, 50, 200, 200), (300, 300, 100, 100)]  # Lista de bounding boxes (x, y, ancho, alto)
 
-# # Obtiene la imagen con solo las áreas dentro de los bounding boxes
-# result_image = mask_image(image_path, bounding_boxes)
+#agregamos las resistencias a la imagen completa que tiene fondo negro y el chip y los capacitores 
 
-# # Guarda o muestra la imagen resultante
-# cv2.imwrite('imagen_resultante.jpg', result_image)
-# # o para mostrarla
-# cv2.imshow('Result Image', result_image)
+# Crear una imagen negra de las mismas dimensiones que la imagen original
+img_negra2 = np.zeros_like(original_img)
+
+# Contador para la cantidad de resistencias
+contador = 0
+regiones_a_pintar = []
+
+for st in stats:
+    x, y, w, h = st[0], st[1], st[2], st[3]
+    # Filtrar según las condiciones dadas
+    if ((60 <= w <= 80) and (260<= h <= 290)) or \
+       ((240 <= w <= 300) and (60<= h <= 80)) or \
+       ((240 <= w <= 300) and (100<= h <= 120)):
+        regiones_a_pintar.append((x, y, w, h))
+
+# Recortar y guardar cada elemento detectado y colocarlos en la imagen negra
+for (x, y, w, h) in regiones_a_pintar:
+    # Recortar el elemento de la imagen original
+    elemento = original_img[y:y+h, x:x+w]
+
+    # Colocar el elemento en la imagen negra en su posición correspondiente
+    img_negra[y:y+h, x:x+w] = elemento
+    img_negra2[y:y+h, x:x+w] = elemento
+
+    # Incrementar el contador
+    contador += 1
+print(f"Cantidad de resistencias eléctricas: {contador}")
+
+# Guardar la imagen negra con los elementos en sus posiciones
+cv2.imwrite('imagen_negra_con_elementos.png', img_negra)
+cv2.imwrite('resistencias.png', img_negra2)
+
+#imagen final con chip, capacitores y resistencias
+imshow(img=img_negra, color_img=True, title="Imagen negra con elementos en sus posiciones")
