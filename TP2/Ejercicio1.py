@@ -28,8 +28,7 @@ plt.figure(); plt.imshow(img), plt.show(block=False)
 img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
-# Aplico un filtro Gaussiano de suavizado. fui probando distintos tamaños de kernels y sigmaX 
-# blurred_img = cv2.GaussianBlur(img_gris, ksize=(3, 3), sigmaX=1.5)
+# Aplico un filtro
 blurred_img = cv2.medianBlur(img_gris, ksize=5)
 
 # Aplico el algoritmo Canny para detectar bordes
@@ -137,6 +136,7 @@ for centroid in centroids:
 for st in stats:
     if (490 <= st[2] <= 520) and (600<= st[3] <= 650):
         cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
+        #cv2.putText(image, "Grande", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
     if (330 <= st[2] <= 360) and (300<= st[3] <= 340):
         cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,0,255), thickness=4)
     if (300 <= st[2] <= 330) and (360<= st[3] <= 400):
@@ -151,10 +151,17 @@ for st in stats:
         cv2.rectangle(im_color, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,255), thickness=4) 
 imshow(img=im_color , color_img=True) 
 
+# ESTO ES PARA EL EJERCICIO B
+print(f"Cantidad de resistencias muy pequeñas: {small_count}")
+print(f"Cantidad de resistencias pequeñas: {small_count}")
+print(f"Cantidad de resistencias medianas: {medium_count}")
+print(f"Cantidad de resistencias grandes: {large_count}")
+
+#ESTO LO HACEMOS PARA DESPUES PODER DETECTAR MEJOR LAS RESISTENCIAS
 # Crear una copia de la imagen original para pintar los capacitores y el chip
 original_img = cv2.imread('TP2/placa.png')  # Cambia esta ruta a la ruta de tu imagen original
 
-# Listas para las regiones a pintar de blanco
+# Listas para las regiones a pintar de negro
 regiones_a_pintar = []
 
 for st in stats:
@@ -180,7 +187,7 @@ for st in stats:
     if (260 <= st[2] <= 270) and (235 <= st[3] <= 245):
         cv2.rectangle(im_color, (st[0], st[1]), (st[0] + st[2], st[1] + st[3]), color=(0, 255, 255), thickness=4)
         regiones_a_pintar.append((st[0], st[1], st[2], st[3]))
-    # Rellena el sector del chip con blanco
+    # Rellena el sector del chip con negro
     if (285 <= st[2] <= 315) and (590 <= st[3] <= 610):
         cv2.rectangle(im_color, (st[0], st[1]), (st[0] + st[2], st[1] + st[3]), color=(0, 255, 0), thickness=4)
         regiones_a_pintar.append((st[0], st[1], st[2], st[3]))
@@ -190,18 +197,18 @@ for x, y, w, h in regiones_a_pintar:
     original_img[y:y+h, x:x+w] = 0
 
 # Guardar la imagen modificada
-cv2.imwrite('imagen_con_capacitores_y_chip_negros.png', original_img)
+cv2.imwrite('TP2/imagen_con_capacitores_y_chip_negros.png', original_img)
 
 # Mostrar la imagen con los capacitores pintados de negro usando la función imshow
 imshow(img=original_img, color_img=True, title="Imagen con capacitores y chip pintados de negro")
 
-# Crear una img en negro para poner los elementos 
-
+#VAMOS A CREAR UNA IMAGEN CON EL CHIP, OTRA CON LOS CAPACITORES Y OTRA CON AMBAS COSAS
 # Crear una copia de la imagen original para pintar las ROI
 original_img = cv2.imread('TP2/placa.png')  
 
 # Crear una imagen negra de las mismas dimensiones que la imagen original
 img_negra = np.zeros_like(original_img)
+img_negra1 = np.zeros_like(original_img)
 
 # Contador para los nombres de archivo
 contador = 0
@@ -216,8 +223,8 @@ for st in stats:
        ((150 <= w <= 170) and (150 <= h <= 210)) or \
        ((250 <= w <= 266) and (150 <= h <= 210)) or \
        ((180 <= w <= 210) and (230 <= h <= 250)) or \
-       ((260 <= w <= 270) and (235 <= h <= 245)) or \
-       ((285 <= w <= 315) and (590 <= h <= 610)):
+       ((260 <= w <= 270) and (235 <= h <= 245)):# or \
+       #((285 <= w <= 315) and (590 <= h <= 610)):
         regiones_a_pintar.append((x, y, w, h))
 
 # Recortar y guardar cada elemento detectado y colocarlos en la imagen negra
@@ -225,27 +232,58 @@ for (x, y, w, h) in regiones_a_pintar:
     # Recortar el elemento de la imagen original
     elemento = original_img[y:y+h, x:x+w]
 
-    # Guardar la imagen del elemento
-    cv2.imwrite(f'elementos/elemento_{contador}.png', elemento)
-    imshow(img=elemento, color_img=True, title="Elemento{contador}")
+    # # Guardar la imagen del elemento
+    # cv2.imwrite(f'elementos/elemento_{contador}.png', elemento)
+    # imshow(img=elemento, color_img=True, title="Elemento{contador}")
 
     # Colocar el elemento en la imagen negra en su posición correspondiente
     img_negra[y:y+h, x:x+w] = elemento
+    img_negra1[y:y+h, x:x+w] = elemento
 
     # Incrementar el contador
-    contador += 1
+   # contador += 1
 
 # Guardar la imagen negra con los elementos en sus posiciones
-cv2.imwrite('imagen_negra_con_elementos.png', img_negra)
+cv2.imwrite('TP2/imagen_con_componentes.png', img_negra)
+cv2.imwrite('TP2/capacitores.png', img_negra)
 
 imshow(img=img_negra, color_img=True, title="Imagen negra con elementos en sus posiciones")
+
+# Crear una copia de la imagen original para pintar las ROI
+original_img = cv2.imread('TP2/placa.png') 
+
+# Crear una imagen negra de las mismas dimensiones que la imagen original
+img_negra2 = np.zeros_like(original_img)
+
+#vamos a crear una imagen solo con el chip
+regiones_a_pintar = []
+for st in stats:
+    x, y, w, h = st[0], st[1], st[2], st[3]
+    # Filtrar según las condiciones dadas
+    if ((285 <= w <= 315) and (590 <= h <= 610)):
+        regiones_a_pintar.append((x, y, w, h))
+
+# Recortar y guardar cada elemento detectado y colocarlos en la imagen negra
+for (x, y, w, h) in regiones_a_pintar:
+    # Recortar el elemento de la imagen original
+    elemento = original_img[y:y+h, x:x+w]
+
+    # Colocar el elemento en la imagen negra en su posición correspondiente
+    img_negra[y:y+h, x:x+w] = elemento
+    img_negra2[y:y+h, x:x+w] = elemento
+
+# Guardar la imagen negra con los elementos en sus posiciones
+cv2.imwrite('TP/chip.png', img_negra2)
+cv2.imwrite('TP2/imagen_con_componentes.png', img_negra)
+
+imshow(img=img_negra, color_img=True, title="chip")
 
 
 
 # REPETIMOS LO QUE HICIMOS ANTES PERO CON LA IMG NUEVA QUE TIENE LOS CAPACITORES Y EL CHIP PINTADOS DE NEGRO 
 
 # Cargo Imagen
-img2 = cv2.imread('imagen_con_capacitores_y_chip_blancos.png')
+img2 = cv2.imread('TP2/imagen_con_capacitores_y_chip_negros.png')
 img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
 plt.figure(); plt.imshow(img2), plt.show(block=False)
 
@@ -341,7 +379,7 @@ imshow(img=im_color , color_img=True)
 #agregamos las resistencias a la imagen completa que tiene fondo negro y el chip y los capacitores 
 
 # Crear una imagen negra de las mismas dimensiones que la imagen original
-img_negra2 = np.zeros_like(original_img)
+img_negra3 = np.zeros_like(original_img)
 
 # Contador para la cantidad de resistencias
 contador = 0
@@ -362,15 +400,24 @@ for (x, y, w, h) in regiones_a_pintar:
 
     # Colocar el elemento en la imagen negra en su posición correspondiente
     img_negra[y:y+h, x:x+w] = elemento
-    img_negra2[y:y+h, x:x+w] = elemento
+    img_negra3[y:y+h, x:x+w] = elemento
 
     # Incrementar el contador
     contador += 1
 print(f"Cantidad de resistencias eléctricas: {contador}")
 
 # Guardar la imagen negra con los elementos en sus posiciones
-cv2.imwrite('imagen_negra_con_elementos.png', img_negra)
-cv2.imwrite('resistencias.png', img_negra2)
+cv2.imwrite('TP2/imagen_con_componentes.png', img_negra)
+cv2.imwrite('TP2/resistencias.png', img_negra3)
 
 #imagen final con chip, capacitores y resistencias
 imshow(img=img_negra, color_img=True, title="Imagen negra con elementos en sus posiciones")
+
+
+
+# Mostrar los resultados por consola
+print(f"Cantidad de resistencias muy pequeñas: {small_count}")
+print(f"Cantidad de resistencias pequeñas: {small_count}")
+print(f"Cantidad de resistencias medianas: {medium_count}")
+print(f"Cantidad de resistencias grandes: {large_count}")
+
