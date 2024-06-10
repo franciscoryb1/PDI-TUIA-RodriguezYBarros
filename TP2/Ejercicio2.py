@@ -18,22 +18,8 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
     if new_fig:        
         plt.show(block=blocking)
 
-def obtener_sub_imagen(img, stats):
-    '''
-    Recibe una imagen y stats sobre un área de interés,
-    devuelve la sub-imagen correspondiente a esa área.
-    '''
-
-    coor_h = stats[cv2.CC_STAT_LEFT] 
-    coor_v = stats[cv2.CC_STAT_TOP]
-
-    ancho  = stats[cv2.CC_STAT_WIDTH]   
-    largo  = stats[cv2.CC_STAT_HEIGHT]
-
-    return img[coor_v:coor_v + largo, coor_h: coor_h + ancho]
-
 # Cargo Imagen
-img = cv2.imread('TP2/Patentes/img11.png', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('TP2/Patentes/img11.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.figure(); plt.imshow(img), plt.show(block=False)
 
@@ -46,40 +32,15 @@ plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
 # plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
 
 # Aplicar un filtro Gaussiano para reducir el ruido
-# blurred = cv2.GaussianBlur(img_gris, (1, 21), 0)
-blurred = cv2.GaussianBlur(img, (1, 21), 0)
+blurred = cv2.GaussianBlur(img_gris, (5, 5), 0)
 plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
-
-img_canny = cv2.Canny(blurred, 250, 300)
-plt.imshow(img_canny, cmap='gray'), plt.show()
 
 # img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 # plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
 
-_, img_binarizada = cv2.threshold(blurred, 165, 50, cv2.THRESH_BINARY)
+_, img_binarizada = cv2.threshold(img_gris, 128, 255, cv2.THRESH_BINARY)
 plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
 np.unique(img_binarizada)
-
-img_canny = cv2.Canny(img_binarizada, 250, 300)
-plt.imshow(img_canny, cmap='gray'), plt.show()
-
-elemento_cierre = cv2.getStructuringElement(cv2.MORPH_CROSS, (20, 1))
-img_cierre = cv2.morphologyEx(img_canny, cv2.MORPH_CLOSE, elemento_cierre)
-plt.imshow(img_cierre, cmap='gray'), plt.show()
-
-# Componente conectados, filtramos por área
-_, labels, stats, _  = cv2.connectedComponentsWithStats(img_cierre)
-AREA_MIN = 400
-filtro = (
-    (stats[:, cv2.CC_STAT_AREA] >= AREA_MIN) & 
-    (stats[:, cv2.CC_STAT_HEIGHT] < stats[:, cv2.CC_STAT_WIDTH]))
-labels_filtrado = np.argwhere(filtro).flatten().tolist()
-# Nos quedamos con el último índice donde está la patente
-idx_patente = labels_filtrado[-1]
-stats_patente = stats[idx_patente]
-# Creación de la máscara para segmentar la patente
-sub_imagen = obtener_sub_imagen(img, stats_patente)
-plt.imshow(sub_imagen, cmap='gray'), plt.show()
 
 
 # Encontrar contornos en la imagen umbralizada

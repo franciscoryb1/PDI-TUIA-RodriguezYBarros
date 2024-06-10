@@ -58,27 +58,21 @@ def recortar_patente(img):
     # plt.imshow(patente, cmap='gray'), plt.show()
     return patente
 
-# Cargo Imagen
+
+# Imprimir 1 patente
 img = cv2.imread('TP2/Patentes/img01.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 plt.figure(); plt.imshow(img), plt.show(block=False)
 patente = recortar_patente(img)
 plt.imshow(patente, cmap='gray'), plt.show()
 
-
-
-
-
-# # Ruta de la carpeta que contiene los archivos de patentes
-# ruta_carpeta = "TP2/Patentes"
-# # Recorrer todos los archivos en la carpeta
-# for nombre_archivo in os.listdir(ruta_carpeta):
-#     # Verificar si es un archivo
-#     if os.path.isfile(os.path.join(ruta_carpeta, nombre_archivo)):
-#         # Hacer algo con el nombre del archivo o su ruta completa
-#         print(os.path.join(ruta_carpeta, nombre_archivo))
-#         img_path = os.path.join(ruta_carpeta, nombre_archivo)
-#         img = cv2.imread(img_path)
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#         patente = recortar_patente(img)
-#         plt.imshow(patente, cmap='gray'), plt.show()
+# Imprimir todas las patentes
+ruta_carpeta = "TP2/Patentes"
+for nombre_archivo in os.listdir(ruta_carpeta):
+    if os.path.isfile(os.path.join(ruta_carpeta, nombre_archivo)):
+        print(os.path.join(ruta_carpeta, nombre_archivo))
+        img_path = os.path.join(ruta_carpeta, nombre_archivo)
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        patente = recortar_patente(img)
+        plt.imshow(patente, cmap='gray'), plt.show()
