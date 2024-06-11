@@ -59,12 +59,47 @@ def recortar_patente(img):
     return patente
 
 
-# Imprimir 1 patente
-img = cv2.imread('TP2/Patentes/img01.png')
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-plt.imshow(img), plt.show(block=False)
-patente = recortar_patente(img)
-plt.imshow(patente, cmap='gray'), plt.show()
+# # Imprimir 1 patente
+# img = cv2.imread('TP2/Patentes/img01.png')
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# plt.imshow(img), plt.show(block=False)
+# patente = recortar_patente(img)
+# plt.imshow(patente, cmap='gray'), plt.show()
+
+
+def detectar_compenentes(img):
+    ## SEGUNDA PARTE --> DETECTAR CARACTERES EN LA IMG RECORTADA
+    # img = cv2.imread('TP2/Patentes/img12.png')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # plt.imshow(img), plt.show(block=False)
+
+    patente1 = recortar_patente(img)
+    # plt.imshow(patente1, cmap='gray'), plt.show()
+
+    # Convierto la imagen a escala de grises
+    img_gris1 = cv2.cvtColor(patente1, cv2.COLOR_BGR2GRAY)
+    # plt.imshow(img_gris1, cmap='gray'), plt.show(block=False)
+
+    # La binarizo
+    _, img_binarizada = cv2.threshold(img_gris1, 113, 255, cv2.THRESH_BINARY)
+    # plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+
+    # Hago una copia para no escribir sobre la img original
+    img_copia = patente1.copy()
+
+    # Encontrar los componentes conectados
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img_binarizada, connectivity=4)
+
+    # Dibujar los bounding boxes en los componentes detectados que cumplan con el criterio de área y de relación de aspecto
+    for i in range(1, num_labels):  # Empezamos desde 1 para evitar el fondo
+        if  0.4 < stats[i, 2]/stats[i, 3] < 0.7 and stats[i, 4] > 15:
+            cv2.rectangle(img_copia, (stats[i, 0], stats[i, 1]), 
+                        (stats[i, 0] + stats[i, 2], stats[i, 1] + stats[i, 3]), color=(0, 255, 0), thickness=1)
+            
+    # Mostrar la imagen resultante
+    # plt.imshow(cv2.cvtColor(img_copia, cv2.COLOR_BGR2RGB)), plt.show()
+
+    return img_copia
 
 # Imprimir todas las patentes
 ruta_carpeta = "TP2/Patentes"
@@ -73,65 +108,21 @@ for nombre_archivo in os.listdir(ruta_carpeta):
         print(os.path.join(ruta_carpeta, nombre_archivo))
         img_path = os.path.join(ruta_carpeta, nombre_archivo)
         img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        patente = recortar_patente(img)
-        plt.imshow(patente, cmap='gray'), plt.show()
+        patente = detectar_compenentes(img)
+        imshow(img=patente, color_img=False, title=img_path)
 
-## SEGUNDA PARTE --> DETECTAR CARACTERES EN LA IMG RECORTADA
-
-img = cv2.imread('TP2/Patentes/img01.png')
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-# plt.imshow(img), plt.show(block=False)
-
-patente1 = recortar_patente(img)
-# plt.imshow(patente1, cmap='gray'), plt.show()
-
-# Convierto la imagen a escala de grises
-img_gris1 = cv2.cvtColor(patente1, cv2.COLOR_BGR2GRAY)
-# plt.imshow(img_gris1, cmap='gray'), plt.show(block=False)
-
-# La binarizo
-_, img_binarizada = cv2.threshold(img_gris1, 149, 255, cv2.THRESH_BINARY)
-# plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-
-# Hago una clausura para terminar de cerrar los espacios
-se = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 1))
-fop = cv2.morphologyEx(img_binarizada, cv2.MORPH_CLOSE, se)
-# plt.imshow(fop, cmap='gray'), plt.show()
-
-img_copia = patente1.copy()
-plt.imshow(img_copia), plt.show()
-
-# Encontrar los componentes conectados
-num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(fop, connectivity=8)
-
-# Coloreamos los elementos
-labels = np.uint8(255/num_labels*labels)
-# imshow(img=labels)
-
-for st in stats:
-    if stats[4] < 500:
-        cv2.rectangle(img_copia, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=1)
-
-# Mostrar la imagen resultante
-plt.imshow(img_copia)
-plt.show()
-
-# Dibujar los bounding boxes en los componentes detectados que cumplan con el criterio de área
-for i in range(1, num_labels):  # Empezamos desde 1 para evitar el fondo
-    # stats[i, 4] contiene el área del componente i-ésimo
-    if  30 < stats[i, 4] < 500:
-        cv2.rectangle(img_copia, (stats[i, 0], stats[i, 1]), 
-                      (stats[i, 0] + stats[i, 2], stats[i, 1] + stats[i, 3]), color=(0, 255, 0), thickness=1)
-        
-# Mostrar la imagen resultante
-plt.imshow(cv2.cvtColor(img_copia, cv2.COLOR_BGR2RGB)), plt.show()
-
-for i in range(1, num_labels):  # Ignoramos el primer componente (fondo)
-    x, y, w, h, area = stats[i]
-    if 100 < area < 500:  # Filtrar componentes por tamaño
-        cv2.rectangle(img_copia, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-# Mostrar la imagen resultante
-plt.imshow(img_copia)
-plt.show()
+# Todas estas son con umbral 113
+# img1: 4 de 6 (iden con 109)
+# img2: 6 de 6 (idem con 109)
+# img3: 6 de 6 (idem con 109)
+# img4: 6 de 6 (idem con 109)
+# img5: 6 de 6 (5 de 6 con umbral 109)
+# img6: 5 de 6 (6 de 6 con umbral 109)
+# img7: 5 de 6 (6 de 6 con umbral 109) 
+# img8: 4 de 6 (3 de 6 con umbral 109)
+# img9: 6 de 6 (idem con 109)
+# img10: 6 de 6 (4 de 6 con 109)
+# img11: 1 de 6 (1 de 6 con 109)
+# img12: 6 de 6 (idem con 109)
+# 61 contra 59
+# 61 de 72 caracteres detectados --> 84,72% 

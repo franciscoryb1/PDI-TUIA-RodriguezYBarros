@@ -300,7 +300,6 @@ img_gris2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 _, img_binarizada = cv2.threshold(img_gris2, 130, 255, cv2.THRESH_BINARY)
 plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
 
-
 # Aplico un filtro median Blur de suavizado
 blurred_img2 = cv2.medianBlur(img_binarizada, ksize=5)
 plt.figure(); plt.imshow(blurred_img2, cmap='gray'), plt.show(block=False)
