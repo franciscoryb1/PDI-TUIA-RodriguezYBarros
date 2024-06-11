@@ -4,7 +4,7 @@ Trabajo Práctico N°1 de Procesamiento de Imágenes I
 
 ## Requisitos previos para correr los ejercicios:
 1) Clonar el repositorio https://github.com/franciscoryb1/PDI-TUIA-RodriguezYBarros-Texier-Masciangelo.git
-2) Acceder a la carpeta: cd .\TP1
+2) Acceder a la carpeta: cd .\TP2
 3) Tener python instalado en el entorno a utilizar. Se puede descargar desde https://www.python.org/downloads/
 4) Instalar las librerías que serán usadas en los ejercicios:
    - OpenCV: pip install opencv-python
