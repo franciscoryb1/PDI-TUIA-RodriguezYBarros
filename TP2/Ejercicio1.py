@@ -109,8 +109,7 @@ for centroid in centroids:
 for st in stats:
     if (285 <= st[2] <= 315) and (590<= st[3] <= 610):
         cv2.rectangle(copy_img, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
-imshow(img=copy_img , color_img=True) 
-
+imshow(cv2.cvtColor(copy_img, cv2.COLOR_BGR2RGB))
 
 # Detectamos los capacitores 
 
@@ -151,15 +150,15 @@ for st in stats:
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,255), thickness=4)
         cv2.putText(copy_img2, "Chico", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6) 
         capacitores_chicos += 1
-imshow(img=copy_img2 , color_img=True) 
+imshow(cv2.cvtColor(copy_img2, cv2.COLOR_BGR2RGB))
 
 cv2.imwrite('TP2/capacitores_por_tamanios.png', copy_img2)
 
 # Devuelve por consola cuantos capacitos hay de cada tamaño
-print(f"Cantidad de resistencias muy pequeñas: {capacitores_muy_chicos}")
-print(f"Cantidad de resistencias pequeñas: {capacitores_chicos}")
-print(f"Cantidad de resistencias medianas: {capacitores_medianos}")
-print(f"Cantidad de resistencias grandes: {capacitores_grandes}")
+print(f"Cantidad de capacitores muy pequeños: {capacitores_muy_chicos}")
+print(f"Cantidad de capacitores pequeños: {capacitores_chicos}")
+print(f"Cantidad de capacitores medianos: {capacitores_medianos}")
+print(f"Cantidad de capacitores grandes: {capacitores_grandes}")
 print(f"Cantidad total de capacitores: {capacitores_chicos + capacitores_grandes + capacitores_medianos + capacitores_muy_chicos}")
 
 plt.figure(figsize=(10, 5))

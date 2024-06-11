@@ -59,14 +59,6 @@ def recortar_patente(img):
     return patente
 
 
-# # Imprimir 1 patente
-# img = cv2.imread('TP2/Patentes/img01.png')
-# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-# plt.imshow(img), plt.show(block=False)
-# patente = recortar_patente(img)
-# plt.imshow(patente, cmap='gray'), plt.show()
-
-
 def detectar_compenentes(img):
     ## SEGUNDA PARTE --> DETECTAR CARACTERES EN LA IMG RECORTADA
     # img = cv2.imread('TP2/Patentes/img12.png')
@@ -110,19 +102,3 @@ for nombre_archivo in os.listdir(ruta_carpeta):
         img = cv2.imread(img_path)
         patente = detectar_compenentes(img)
         imshow(img=patente, color_img=False, title=img_path)
-
-# Todas estas son con umbral 113
-# img1: 4 de 6 (iden con 109)
-# img2: 6 de 6 (idem con 109)
-# img3: 6 de 6 (idem con 109)
-# img4: 6 de 6 (idem con 109)
-# img5: 6 de 6 (5 de 6 con umbral 109)
-# img6: 5 de 6 (6 de 6 con umbral 109)
-# img7: 5 de 6 (6 de 6 con umbral 109) 
-# img8: 4 de 6 (3 de 6 con umbral 109)
-# img9: 6 de 6 (idem con 109)
-# img10: 6 de 6 (4 de 6 con 109)
-# img11: 1 de 6 (1 de 6 con 109)
-# img12: 6 de 6 (idem con 109)
-# 61 contra 59
-# 61 de 72 caracteres detectados --> 84,72% 
