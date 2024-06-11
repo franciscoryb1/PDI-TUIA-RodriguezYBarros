@@ -114,39 +114,53 @@ imshow(img=copy_img , color_img=True)
 
 # Detectamos los capacitores 
 
+# Inicializamos contadores por cada tamaño de capacitor 
+capacitores_grandes = 0
+capacitores_medianos = 0
+capacitores_chicos = 0
+capacitores_muy_chicos = 0
+
 # Coloreamos los elementos
 copy_img2 = cv2.imread('TP2/placa.png')
 for st in stats:
     if (490 <= st[2] <= 520) and (600<= st[3] <= 650):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,0), thickness=4)
         cv2.putText(copy_img2, "Grande", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6)
+        capacitores_grandes += 1
     if (330 <= st[2] <= 360) and (300<= st[3] <= 340):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,0,255), thickness=4)
         cv2.putText(copy_img2, "Mediano", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6)
+        capacitores_medianos += 1
     if (300 <= st[2] <= 330) and (360<= st[3] <= 400):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,0,255), thickness=4)
         cv2.putText(copy_img2, "Mediano", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6)
+        capacitores_medianos += 1    
     if (150 <= st[2] <= 170) and (150<= st[3] <= 210):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(255,0,0), thickness=4)
         cv2.putText(copy_img2, "Muy Chico", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6)
+        capacitores_muy_chicos += 1
     if (250 <= st[2] <= 266) and (150<= st[3] <= 210):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(255,0,0), thickness=4) 
         cv2.putText(copy_img2, "Muy Chico", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6) 
+        capacitores_muy_chicos += 1
     if (180 <= st[2] <= 210) and (230<= st[3] <= 250):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,255), thickness=4) 
         cv2.putText(copy_img2, "Chico", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6)
+        capacitores_chicos += 1
     if (260 <= st[2] <= 270) and (235<= st[3] <= 245):
         cv2.rectangle(copy_img2, (st[0], st[1]), (st[0]+st[2], st[1]+st[3]), color=(0,255,255), thickness=4)
         cv2.putText(copy_img2, "Chico", (st[0], st[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,2,color=(255,255,255), thickness=6) 
+        capacitores_chicos += 1
 imshow(img=copy_img2 , color_img=True) 
 
 cv2.imwrite('TP2/capacitores_por_tamanios.png', copy_img2)
 
-# ESTO ES PARA EL EJERCICIO B
-print(f"Cantidad de resistencias muy pequeñas: {small_count}")
-print(f"Cantidad de resistencias pequeñas: {small_count}")
-print(f"Cantidad de resistencias medianas: {medium_count}")
-print(f"Cantidad de resistencias grandes: {large_count}")
+# Devuelve por consola cuantos capacitos hay de cada tamaño
+print(f"Cantidad de resistencias muy pequeñas: {capacitores_muy_chicos}")
+print(f"Cantidad de resistencias pequeñas: {capacitores_chicos}")
+print(f"Cantidad de resistencias medianas: {capacitores_medianos}")
+print(f"Cantidad de resistencias grandes: {capacitores_grandes}")
+print(f"Cantidad total de capacitores: {capacitores_chicos + capacitores_grandes + capacitores_medianos + capacitores_muy_chicos}")
 
 plt.figure(figsize=(10, 5))
 
