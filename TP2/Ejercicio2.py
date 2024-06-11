@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 # Defininimos función para mostrar imágenes
 def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, colorbar=False, ticks=False):
@@ -18,232 +19,110 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
     if new_fig:        
         plt.show(block=blocking)
 
-# Cargo Imagen
-img = cv2.imread('TP2/Patentes/img11.png')
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-plt.figure(); plt.imshow(img), plt.show(block=False)
-
+def recortar_patente(img):
 # Convierto la imagen a escala de grises
-img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
+    img_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # plt.figure(); plt.imshow(img_gris, cmap='gray'), plt.show(block=False)
 
-# Aplicar un filtro Gaussiano para reducir el ruido
-# blurred = cv2.GaussianBlur(img_gris, (3, 3), 0)
-# plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
+    # Aplicar un filtro Gaussiano para reducir el ruido
+    blurred = cv2.GaussianBlur(img_gris, (1, 21), 0)
+    # plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
 
-# Aplicar un filtro Gaussiano para reducir el ruido
-blurred = cv2.GaussianBlur(img_gris, (5, 5), 0)
-plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
+    # canny
+    img_canny = cv2.Canny(blurred, 250, 300)
+    # plt.imshow(img_canny, cmap='gray'), plt.show()
 
-# img_binarizada = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-# plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
+    # cierre
+    elemento_cierre = cv2.getStructuringElement(cv2.MORPH_CROSS, (20, 1))
+    img_cierre = cv2.morphologyEx(img_canny, cv2.MORPH_CLOSE, elemento_cierre)
+    # plt.imshow(img_cierre, cmap='gray'), plt.show()
 
-_, img_binarizada = cv2.threshold(img_gris, 128, 255, cv2.THRESH_BINARY)
-plt.figure(); plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-np.unique(img_binarizada)
+    # componentes conectados
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img_cierre)
+    componentes_filtrados = []
+    for i, stat in enumerate(stats):
+        area = stat[4]
+        height = stat[3]
+        width = stat[2]
 
-
-# Encontrar contornos en la imagen umbralizada
-contours, hierarchy = cv2.findContours(img_binarizada, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-# Dibujar los contornos en una imagen en blanco
-contour_img = np.zeros_like(img_binarizada)
-cv2.drawContours(contour_img, contours, -1, (255, 255, 255), thickness=cv2.FILLED)
-plt.figure(); plt.imshow(contour_img, cmap='gray'), plt.show(block=False)
-
-# Detecta los componentes conectados
-num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(contour_img, 8, cv2.CV_32S)
-stats = sorted(stats, key=lambda x: x[0])
-
-# x: Coordenada x del borde izquierdo del rectángulo delimitador del componente. (stats[:, 0])
-# y: Coordenada y del borde superior del rectángulo delimitador del componente. (stats[:, 1])
-# width: Ancho del rectángulo delimitador del componente. (stats[:, 2])
-# height: Altura del rectángulo delimitador del componente. (stats[:, 3])
-# area: Área del componente en píxeles. (stats[:, 4])
-
-# Crear una nueva imagen en negro para los componentes filtrados
-filtered_img = np.zeros(contour_img.shape, dtype=np.uint8)
-
-# Crear una lista para almacenar los puntos iniciales y los centroides de los componentes filtrados
-filtered_components = []
-
-# Recorrer cada contorno y filtrar por área 
-for contour in contours:
-    x, y, width, height = cv2.boundingRect(contour)
-    # x, y, width, height, area = stats[contour]
-    area = cv2.contourArea(contour)
-    
-    # Ajustar estos parámetros según sea necesario
-    if 2000 < area < 2300 :
-        cv2.drawContours(filtered_img, [contour], -1, (255, 255, 255), thickness=cv2.FILLED)
-
-# Mostrar la imagen con los componentes filtrados
-plt.figure(); plt.imshow(filtered_img, cmap='gray'), plt.show(block=False)
+        # Filtrar por área mínima y relación de aspecto
+        if area >= 300 and height < width:
+            componentes_filtrados.append(i)
+            
+    componente_patente = stats[componentes_filtrados[-1]]
+    coordenada_x = componente_patente[0] 
+    coordenada_y = componente_patente[1]
+    ancho  = componente_patente[2]
+    largo  = componente_patente[3]
+    patente = img[coordenada_y:coordenada_y + largo, coordenada_x: coordenada_x + ancho]
+    # plt.imshow(patente, cmap='gray'), plt.show()
+    return patente
 
 
+# # Imprimir 1 patente
+# img = cv2.imread('TP2/Patentes/img01.png')
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# plt.imshow(img), plt.show(block=False)
+# patente = recortar_patente(img)
+# plt.imshow(patente, cmap='gray'), plt.show()
 
 
-# Crear una nueva imagen en negro para los componentes filtrados
-filtered_img = np.zeros(contour_img.shape, dtype=np.uint8)
+def detectar_compenentes(img):
+    ## SEGUNDA PARTE --> DETECTAR CARACTERES EN LA IMG RECORTADA
+    # img = cv2.imread('TP2/Patentes/img12.png')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # plt.imshow(img), plt.show(block=False)
 
-# Crear una lista para almacenar los puntos iniciales y los centroides de los componentes filtrados
-filtered_components = []
+    patente1 = recortar_patente(img)
+    # plt.imshow(patente1, cmap='gray'), plt.show()
 
-# Recorrer cada componente conectado
-for i in range(1, num_labels):  # Saltamos la etiqueta 0, que es el fondo
-    # Obtener las estadísticas del componente
-    x, y, width, height, area = stats[i]
+    # Convierto la imagen a escala de grises
+    img_gris1 = cv2.cvtColor(patente1, cv2.COLOR_BGR2GRAY)
+    # plt.imshow(img_gris1, cmap='gray'), plt.show(block=False)
 
-    # Si el área es igual a 2100, añadir el componente a la imagen filtrada
-    if 2000 < area < 2300:
-        filtered_img[labels == i] = 255
-        # Punto inicial (superior izquierdo)
-        top_left_x = x
-        top_left_y = y
-        # Centroide
-        centroid_x, centroid_y = centroids[i]
-        # filtered_img[patente == 255] = 255
+    # La binarizo
+    _, img_binarizada = cv2.threshold(img_gris1, 113, 255, cv2.THRESH_BINARY)
+    # plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
 
-        # Añadir a la lista de componentes filtrados
-        filtered_components.append({
-            'label': i,
-            'top_left': (top_left_x, top_left_y),
-            'centroid': (centroid_x, centroid_y)
-        })
+    # Hago una copia para no escribir sobre la img original
+    img_copia = patente1.copy()
 
-plt.figure(); plt.imshow(filtered_img, cmap='gray'), plt.show(block=False)
+    # Encontrar los componentes conectados
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img_binarizada, connectivity=4)
 
-semilla = filtered_components[0]['top_left']
+    # Dibujar los bounding boxes en los componentes detectados que cumplan con el criterio de área y de relación de aspecto
+    for i in range(1, num_labels):  # Empezamos desde 1 para evitar el fondo
+        if  0.4 < stats[i, 2]/stats[i, 3] < 0.7 and stats[i, 4] > 15:
+            cv2.rectangle(img_copia, (stats[i, 0], stats[i, 1]), 
+                        (stats[i, 0] + stats[i, 2], stats[i, 1] + stats[i, 3]), color=(0, 255, 0), thickness=1)
+            
+    # Mostrar la imagen resultante
+    # plt.imshow(cv2.cvtColor(img_copia, cv2.COLOR_BGR2RGB)), plt.show()
 
-componente_interes = np.uint8(labels == 194) * 255
+    return img_copia
 
-# Encuentra todos los puntos blancos en la imagen del componente de interés
-puntos_blancos = cv2.findNonZero(componente_interes)
+# Imprimir todas las patentes
+ruta_carpeta = "TP2/Patentes"
+for nombre_archivo in os.listdir(ruta_carpeta):
+    if os.path.isfile(os.path.join(ruta_carpeta, nombre_archivo)):
+        print(os.path.join(ruta_carpeta, nombre_archivo))
+        img_path = os.path.join(ruta_carpeta, nombre_archivo)
+        img = cv2.imread(img_path)
+        patente = detectar_compenentes(img)
+        imshow(img=patente, color_img=False, title=img_path)
 
-# Itera sobre cada punto blanco y obtén sus coordenadas
-coordenadas = []
-for punto in puntos_blancos:
-    x, y = punto[0]  # El punto es una matriz de una fila con dos elementos (x, y)
-    coordenadas.append((x, y))
-
-# Ahora puedes pintar estos puntos de 255 en otra imagen si lo deseas
-imagen_pintada = np.zeros_like(componente_interes)  # Crea una imagen en blanco del mismo tamaño que tu componente de interés
-# ---------------------------------------------------------------------------------------
-# --- Reconstrucción Morgológica --------------------------------------------------------
-# ---------------------------------------------------------------------------------------
-def imreconstruct(marker, mask, kernel=None):
-    if kernel==None:
-        kernel = np.ones((3,3), np.uint8)
-    while True:
-        expanded = cv2.dilate(marker, kernel)                               # Dilatacion
-        expanded_intersection = cv2.bitwise_and(src1=expanded, src2=mask)   # Interseccion
-        if (marker == expanded_intersection).all():                         # Finalizacion?
-            break                                                           #
-        marker = expanded_intersection        
-    return expanded_intersection
-
-img_r = imreconstruct(marker=semilla, mask=filtered_img)  
-
-## No conviene aplicar apertura, ni filtro gaussiano, ni erosion 
-
-edges3 = cv2.Canny(img_binarizada, 0.60*255, 0.80*255)
-plt.figure(); plt.imshow(edges3, cmap='gray'), plt.show(block=False)
-
-
-####################################################################################################################################################
-####################################################################################################################################################
-# ---------------------------------------------------------------------------------------
-# --- Reconstrucción Morgológica --------------------------------------------------------
-# ---------------------------------------------------------------------------------------
-def imreconstruct(marker, mask, kernel=None):
-    if kernel==None:
-        kernel = np.ones((3,3), np.uint8)
-    while True:
-        expanded = cv2.dilate(marker, kernel)                               # Dilatacion
-        expanded_intersection = cv2.bitwise_and(src1=expanded, src2=mask)   # Interseccion
-        if (marker == expanded_intersection).all():                         # Finalizacion?
-            break                                                           #
-        marker = expanded_intersection        
-    return expanded_intersection
-
-# --- Version 1 ------------------------------------------------
-# Utilizando reconstrucción morfológica
-# NO rellena los huecos que tocan los bordes
-def imfillhole(img):
-    # img: Imagen binaria de entrada. Valores permitidos: 0 (False), 255 (True).
-    mask = np.zeros_like(img)                                                   # Genero mascara para...
-    mask = cv2.copyMakeBorder(mask[1:-1,1:-1], 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=int(255)) # ... seleccionar los bordes.
-    marker = cv2.bitwise_not(img, mask=mask)                # El marcador lo defino como el complemento de los bordes.
-    img_c = cv2.bitwise_not(img)                            # La mascara la defino como el complemento de la imagen.
-    img_r = imreconstruct(marker=marker, mask=img_c)        # Calculo la reconstrucción R_{f^c}(f_m)
-    img_fh = cv2.bitwise_not(img_r)                         # La imagen con sus huecos rellenos es igual al complemento de la reconstruccion.
-    return img_fh
-
-# --- Mejoras sobre la imagen original ----------
-# img = cv2.dilate(img, np.ones((3,3),np.uint8))  # Con esto logro rellenar casi todos, algunas que quedan son: 1 "b", 1 "o" y 1 "e" abajo)
-# img = cv2.dilate(img, np.ones((5,5),np.uint8))  # Soluciono solo la "e" 
-# img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, np.ones((5,5),np.uint8)) # Notar la mejora en el grosor...
-# img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, np.ones((6,6),np.uint8)) # Acá ya hay problemas: se unen caracteres.
-# -----------------------------------------------
-img_fh = imfillhole(img)
-plt.figure()
-ax1 = plt.subplot(121); imshow(img, new_fig=False, title="Original", ticks=True)
-plt.subplot(122, sharex=ax1, sharey=ax1); imshow(img_fh, new_fig=False, title="Rellenado de Huecos")
-plt.show(block=False)
-
-# --- Analisis de cada etapa ------------------------------------
-img = cv2.imread('book_text_bw.tif', cv2.IMREAD_GRAYSCALE)
-mask = np.zeros_like(img)                                                   # Genero mascara para...
-mask = cv2.copyMakeBorder(mask[1:-1,1:-1], 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=int(255)) # ... seleccionar los bordes.
-marker = cv2.bitwise_not(img, mask=mask)                # El marcador lo defino como el complemento de los bordes.
-img_c = cv2.bitwise_not(img)                            # La mascara la defino como el complemento de la imagen.
-img_r = imreconstruct(marker=marker, mask=img_c)        # Calculo la reconstrucción R_{f^c}(f_m)
-img_fh = cv2.bitwise_not(img_r)                         # La imagen con sus huecos rellenos es igual al complemento de la reconstruccion.
-
-plt.figure()
-ax1 = plt.subplot(221); imshow(marker, new_fig=False, title="Marker", ticks=True)
-plt.subplot(222, sharex=ax1, sharey=ax1); imshow(img_c, new_fig=False, title="Mascara")
-plt.subplot(223, sharex=ax1, sharey=ax1); imshow(img_r, new_fig=False, title="Reconstruccion")
-plt.subplot(224, sharex=ax1, sharey=ax1); imshow(img_fh, new_fig=False, title="Reconstruccion + Complemento")
-plt.show(block=False)
-####################################################################################################################################################
-####################################################################################################################################################
-
-# Cargar la imagen
-image_path = 'TP2/Patentes/img01.png'
-image = cv2.imread(image_path)
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-# Aplicar un filtro Gaussiano para reducir el ruido
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-plt.figure(); plt.imshow(blurred, cmap='gray'), plt.show(block=False)
-
-# Aplicar la detección de bordes Canny
-edges = cv2.Canny(blurred, 50, 150)
-plt.figure(); plt.imshow(edges, cmap='gray'), plt.show(block=False)
-
-# Encontrar los contornos en la imagen de bordes
-contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-# Filtrar los contornos para encontrar la patente
-for contour in contours:
-    # Aproximar el contorno
-    approx = cv2.approxPolyDP(contour, 0.02 * cv2.arcLength(contour, True), True)
-    if len(approx) == 4:  # Los contornos de la patente suelen ser rectángulos
-        x, y, w, h = cv2.boundingRect(approx)
-        aspect_ratio = w / float(h)
-        if 2 < aspect_ratio < 6:  # La relación de aspecto típica de una patente
-            if 1000 < cv2.contourArea(contour) < 5000:  # Filtrar por área
-                # Dibujar el contorno encontrado
-                cv2.drawContours(image, [approx], -1, (0, 255, 0), 3)
-                # Guardar la imagen de la patente
-                plate = gray[y:y+h, x:x+w]
-                cv2.imwrite('/mnt/data/patente_detectada.png', plate)
-                break
-
-# Mostrar la imagen original con el contorno de la patente
-plt.figure(figsize=(10, 6))
-plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-plt.title('Imagen con patente detectada')
-plt.axis('off')
-plt.show()
+# Todas estas son con umbral 113
+# img1: 4 de 6 (iden con 109)
+# img2: 6 de 6 (idem con 109)
+# img3: 6 de 6 (idem con 109)
+# img4: 6 de 6 (idem con 109)
+# img5: 6 de 6 (5 de 6 con umbral 109)
+# img6: 5 de 6 (6 de 6 con umbral 109)
+# img7: 5 de 6 (6 de 6 con umbral 109) 
+# img8: 4 de 6 (3 de 6 con umbral 109)
+# img9: 6 de 6 (idem con 109)
+# img10: 6 de 6 (4 de 6 con 109)
+# img11: 1 de 6 (1 de 6 con 109)
+# img12: 6 de 6 (idem con 109)
+# 61 contra 59
+# 61 de 72 caracteres detectados --> 84,72% 
