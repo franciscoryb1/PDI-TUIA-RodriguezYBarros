@@ -18,6 +18,95 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
     if new_fig:        
         plt.show(block=blocking)
 
+
+# Suponiendo que lines es una lista de segmentos de líneas detectadas
+# Cada línea tiene la forma [x1, y1, x2, y2]
+
+def unir_segmentos(lines, distancia_umbral=50):
+    if lines is None:
+        return []
+
+    # Convertir las líneas en una lista de listas de tuplas
+    lines = [line[0] for line in lines]
+
+    # Ordenar por coordenada x inicial
+    lines = sorted(lines, key=lambda line: line[0])
+
+    merged_lines = []
+    current_line = lines[0]
+
+    for next_line in lines[1:]:
+        # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
+        if abs(next_line[0] - current_line[2]) <= distancia_umbral:
+            # Combinar los segmentos actualizando la coordenada final del segmento actual
+            current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
+        else:
+            # Agregar la línea actual a las líneas combinadas y actualizar la línea actual
+            merged_lines.append(current_line)
+            current_line = next_line
+
+    # Agregar la última línea
+    merged_lines.append(current_line)
+
+    return merged_lines
+
+
+def drawlines(frame, width, height):
+    # Crear una máscara en blanco
+    mask = np.zeros((height, width), dtype=np.uint8)
+
+    # Definir los puntos del triángulo (en este caso, una diagonal)
+    height, width = frame.shape[:2]
+    points = np.array([[115, height], [915, height], [560, 330], [400, 330] ], dtype=np.int32)
+
+    # Rellenar el triángulo en la máscara
+    cv2.fillPoly(mask, [points], 255)
+
+    # Aplicar la máscara a la imagen original
+    result = cv2.bitwise_and(frame, frame, mask=mask)
+
+    # Convierto la imagen a escala de grises
+    img_gris = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+
+    # La binarizo
+    _, img_binarizada = cv2.threshold(img_gris, 130, 255, cv2.THRESH_BINARY)
+
+    # Canny
+    edges1 = cv2.Canny(img_binarizada, 0.2*255, 0.60*255)
+
+    #Gradiente morfológico
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
+    f_mg = cv2.morphologyEx(edges1, cv2.MORPH_GRADIENT, kernel)
+
+    Rres = 1
+    Thetares = np.pi/180
+    Threshold = 1
+    minLineLength = 1
+    maxLineGap = 5
+    # Aplicar la transformada de Hough probabilística
+    lines = cv2.HoughLinesP(f_mg, Rres ,Thetares,Threshold,minLineLength,maxLineGap)
+
+    final = frame.copy()
+
+    # Suponiendo que lines es una lista de segmentos de líneas detectadas
+    # Cada línea tiene la forma [x1, y1, x2, y2]
+
+    # lines es la lista de líneas detectadas
+    merged_lines = unir_segmentos(lines, distancia_umbral=50)
+
+    # Dibujar las líneas detectadas
+    for linea in merged_lines:
+        x1, y1, x2, y2 = linea
+        cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 7)
+    return final
+
+# rho: resolución de la distancia en píxeles
+# theta: resolución del ángulo en radianes
+# threshold: número mínimo de intersecciones para detectar una línea
+# minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
+# maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
+
+
 # --- Leer un video ------------------------------------------------
 cap = cv2.VideoCapture('TP3/ruta_1.mp4')                # Abro el video
 # cap = cv2.VideoCapture('TP3/ruta_2.mp4')                # Abro el video
@@ -27,120 +116,42 @@ fps = int(cap.get(cv2.CAP_PROP_FPS))                # ... pero puede ser útil e
 n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))   #
 ret, frame = cap.read()
 cap.release() 
-
-# Crear una máscara en blanco
-mask = np.zeros((height, width), dtype=np.uint8)
-
-# Definir los puntos del triángulo (en este caso, una diagonal)
-height, width = frame.shape[:2]
-points = np.array([[115, height], [915, height], [560, 330], [400, 330] ], dtype=np.int32)
-
-# Rellenar el triángulo en la máscara
-cv2.fillPoly(mask, [points], 255)
-
-# Aplicar la máscara a la imagen original
-result = cv2.bitwise_and(frame, frame, mask=mask)
-
-# Mostrar la imagen original y la imagen resultante
-cv2.imshow('Original', frame)
-cv2.imshow('Cortada en diagonal', result)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
-# Convierto la imagen a escala de grises
-img_gris = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-imshow(img_gris)
-
-# La binarizo
-_, img_binarizada = cv2.threshold(img_gris, 130, 255, cv2.THRESH_BINARY)
-plt.imshow(img_binarizada, cmap='gray'), plt.show(block=False)
-
-# Canny
-edges1 = cv2.Canny(img_binarizada, 0.2*255, 0.60*255)
-
-#Gradiente morfológico
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
-f_mg = cv2.morphologyEx(edges1, cv2.MORPH_GRADIENT, kernel)
-imshow(f_mg)
-
-num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(f_mg, 8, cv2.CV_32S)  # https://docs.opencv.org/4.5.3/d3/dc0/group__imgproc__shape.html#ga107a78bf7cd25dec05fb4dfc5c9e765f
-
-stats_filtrado = stats[stats[:, 0] != 0]
-
-valor = float('inf')
-registro = None
-for i, stat in enumerate(stats_filtrado):
-    if stat[0] < valor:
-        valor = stat[0]
-        registro = i
-
-x, y, ancho, alto, area = stats_filtrado[i] 
-
-# Calcular la pendiente (m) y la intersección (b) de la línea
-m = (alto) / (ancho)
-b = (y+alto) - m * x
-
-# Definir una función para la ecuación de la línea
-def ecuacion_linea(x):
-    return m * x + b
-
-Rres = 1
-Thetares = np.pi/180
-Threshold = 1
-minLineLength = 1
-maxLineGap = 5
-# Aplicar la transformada de Hough probabilística
-lines = cv2.HoughLinesP(f_mg, Rres,Thetares,Threshold,minLineLength,maxLineGap)
-
-# Dibujar las líneas detectadas
-for linea in lines:
-    x1, y1, x2, y2 = linea[0]
-    cv2.line(f_mg, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-# Dibujar la línea calculada
-x_vals = np.array(range(0, f_mg.shape[1]))
-y_vals = ecuacion_linea(x_vals)
-for i in range(len(x_vals)-1):
-    cv2.line(f_mg, (x_vals[i], y_vals[i]), (x_vals[i+1], y_vals[i+1]), (255, 0, 0), 2)
-
-# Mostrar la imagen resultante
-plt.imshow(cv2.cvtColor(f_mg, cv2.COLOR_BGR2RGB))
-plt.show()
-
-
-Rres = 1
-Thetares = np.pi/180
-Threshold = 1
-minLineLength = 1
-maxLineGap = 5
-# Aplicar la transformada de Hough probabilística
-lines = cv2.HoughLinesP(f_mg, Rres,Thetares,Threshold,minLineLength,maxLineGap)
-# lines = cv2.HoughLinesP(img_binarizada, )
-
-final = frame.copy()
-for line in lines:
-    x1, y1, x2, y2 = line[0]  # Obtener los puntos extremos de la línea
-    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Dibujar la línea sobre la imagen original
-imshow(final)
-# rho: resolución de la distancia en píxeles
-# theta: resolución del ángulo en radianes
-# threshold: número mínimo de intersecciones para detectar una línea
-# minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
-# maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
-
-## HAY QUE SACAR LA PENDIENTE Y QUE EN CADA FRAME VAYA CALCULANDO LA PENDIENTE Y DIBUJANDO LA LINEA
-
-
-while (cap.isOpened()):                                                 # Itero, siempre y cuando el video esté abierto
+while (cap.isOpened()):                                # Itero, siempre y cuando el video esté abierto
     ret, frame = cap.read()                                             # Obtengo el frame
     if ret==True: 
-                                                              # ret indica si la lectura fue exitosa (True) o no (False)
-        # frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))  # Si el video es muy grande y al usar cv2.imshow() no entra en la pantalla, se lo puede escalar (solo para visualización!)
+        frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))  # Si el video es muy grande y al usar cv2.imshow() no entra en la pantalla, se lo puede escalar (solo para visualización!)
+        frame = drawlines(frame,width,height)                                                    # ret indica si la lectura fue exitosa (True) o no (False)
         cv2.imshow('Frame',frame)                                       # Muestro el frame
-        if cv2.waitKey(25) & 0xFF == ord('q'):                          # Corto la repoducción si se presiona la tecla "q"
+        if cv2.waitKey(25) & 0xFF == ord('q'): 
+            print('error')                         # Corto la repoducción si se presiona la tecla "q"
             break
     else:
+        print('error2')
         break                                       # Corto la reproducción si ret=False, es decir, si hubo un error o no quedán mas frames.
 cap.release()                   # Cierro el video
 cv2.destroyAllWindows()         # Destruyo todas las ventanas abiertas
+
+
+#cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
+cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Meta-Información del video
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # No la usamos en este script,...
+fps = int(cap.get(cv2.CAP_PROP_FPS))  # ... pero puede ser útil en otras ocasiones
+n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  #
+
+while cap.isOpened():  # Itero, siempre y cuando el video esté abierto
+    ret, frame = cap.read()  # Obtengo el frame
+    if ret: 
+        # Asegurarse de que el frame está en el formato correcto
+        if frame is None:
+            break
+        #frame = cv2.resize(frame, dsize=(int(width / 3), int(height / 3)))  # Si el video es muy grande y al usar cv2.imshow() no entra en la pantalla, se lo puede escalar (solo para visualización!)
+        frame_l = drawlines(frame, frame.shape[1], frame.shape[0])  # Ret indica si la lectura fue exitosa (True) o no (False)
+        cv2.imshow('Frame', frame_l)  # Muestro el frame
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break  # Corto la repoducción si se presiona la tecla "q"
+    else:
+        break  # Corto la reproducción si ret=False, es decir, si hubo un error o no quedán mas frames.
+
+cap.release()  # Cierro el video
+cv2.destroyAllWindows()
