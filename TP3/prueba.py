@@ -1,6 +1,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+
 # Defininimos función para mostrar imágenes
 def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, colorbar=False, ticks=False):
     if new_fig:
@@ -63,11 +64,56 @@ kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
 f_mg = cv2.morphologyEx(edges1, cv2.MORPH_GRADIENT, kernel)
 imshow(f_mg)
 
+num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(f_mg, 8, cv2.CV_32S)  # https://docs.opencv.org/4.5.3/d3/dc0/group__imgproc__shape.html#ga107a78bf7cd25dec05fb4dfc5c9e765f
+
+stats_filtrado = stats[stats[:, 0] != 0]
+
+valor = float('inf')
+registro = None
+for i, stat in enumerate(stats_filtrado):
+    if stat[0] < valor:
+        valor = stat[0]
+        registro = i
+
+x, y, ancho, alto, area = stats_filtrado[i] 
+
+# Calcular la pendiente (m) y la intersección (b) de la línea
+m = (alto) / (ancho)
+b = (y+alto) - m * x
+
+# Definir una función para la ecuación de la línea
+def ecuacion_linea(x):
+    return m * x + b
+
 Rres = 1
 Thetares = np.pi/180
 Threshold = 1
-minLineLength = 10
-maxLineGap = 20
+minLineLength = 1
+maxLineGap = 5
+# Aplicar la transformada de Hough probabilística
+lines = cv2.HoughLinesP(f_mg, Rres,Thetares,Threshold,minLineLength,maxLineGap)
+
+# Dibujar las líneas detectadas
+for linea in lines:
+    x1, y1, x2, y2 = linea[0]
+    cv2.line(f_mg, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+# Dibujar la línea calculada
+x_vals = np.array(range(0, f_mg.shape[1]))
+y_vals = ecuacion_linea(x_vals)
+for i in range(len(x_vals)-1):
+    cv2.line(f_mg, (x_vals[i], y_vals[i]), (x_vals[i+1], y_vals[i+1]), (255, 0, 0), 2)
+
+# Mostrar la imagen resultante
+plt.imshow(cv2.cvtColor(f_mg, cv2.COLOR_BGR2RGB))
+plt.show()
+
+
+Rres = 1
+Thetares = np.pi/180
+Threshold = 1
+minLineLength = 1
+maxLineGap = 5
 # Aplicar la transformada de Hough probabilística
 lines = cv2.HoughLinesP(f_mg, Rres,Thetares,Threshold,minLineLength,maxLineGap)
 # lines = cv2.HoughLinesP(img_binarizada, )
