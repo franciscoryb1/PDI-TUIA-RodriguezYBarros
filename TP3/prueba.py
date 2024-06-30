@@ -22,7 +22,7 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
 # Suponiendo que lines es una lista de segmentos de líneas detectadas
 # Cada línea tiene la forma [x1, y1, x2, y2]
 
-def unir_segmentos(lines, distancia_umbral=50):
+def unir_segmentos(lines, umbral_x, umbral_y):
     if lines is None:
         return []
 
@@ -37,7 +37,7 @@ def unir_segmentos(lines, distancia_umbral=50):
 
     for next_line in lines[1:]:
         # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
-        if abs(next_line[0] - current_line[2]) <= distancia_umbral:
+        if (abs(next_line[0] - current_line[2]) <= umbral_x) and (abs(next_line[1] - current_line[3]) <=umbral_y):
             # Combinar los segmentos actualizando la coordenada final del segmento actual
             current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
         else:
@@ -69,7 +69,7 @@ def drawlines(frame, width, height):
     img_gris = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
 
     # La binarizo
-    _, img_binarizada = cv2.threshold(img_gris, 130, 255, cv2.THRESH_BINARY)
+    _, img_binarizada = cv2.threshold(img_gris, 200, 255, cv2.THRESH_BINARY)
 
     # Canny
     edges1 = cv2.Canny(img_binarizada, 0.2*255, 0.60*255)
@@ -77,14 +77,13 @@ def drawlines(frame, width, height):
     #Gradiente morfológico
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
     f_mg = cv2.morphologyEx(edges1, cv2.MORPH_GRADIENT, kernel)
-
-    Rres = 1
-    Thetares = np.pi/180
-    Threshold = 1
-    minLineLength = 1
-    maxLineGap = 5
+    Rho = 1                   # rho: resolución de la distancia en píxeles
+    Theta = np.pi/180       # theta: resolución del ángulo en radianes
+    Threshold = 1             # threshold: número mínimo de intersecciones para detectar una línea
+    minLineLength = 1          # minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
+    maxLineGap = 1             # maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
     # Aplicar la transformada de Hough probabilística
-    lines = cv2.HoughLinesP(f_mg, Rres ,Thetares,Threshold,minLineLength,maxLineGap)
+    lines = cv2.HoughLinesP(f_mg, Rho ,Theta,Threshold,minLineLength,maxLineGap)
 
     final = frame.copy()
 
@@ -92,7 +91,7 @@ def drawlines(frame, width, height):
     # Cada línea tiene la forma [x1, y1, x2, y2]
 
     # lines es la lista de líneas detectadas
-    merged_lines = unir_segmentos(lines, distancia_umbral=50)
+    merged_lines = unir_segmentos(lines, umbral_x=70, umbral_y= 20)
 
     # Dibujar las líneas detectadas
     for linea in merged_lines:
@@ -100,43 +99,11 @@ def drawlines(frame, width, height):
         cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 7)
     return final
 
-# rho: resolución de la distancia en píxeles
-# theta: resolución del ángulo en radianes
-# threshold: número mínimo de intersecciones para detectar una línea
-# minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
-# maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
-
-
-# --- Leer un video ------------------------------------------------
-cap = cv2.VideoCapture('TP3/ruta_1.mp4')                # Abro el video
-# cap = cv2.VideoCapture('TP3/ruta_2.mp4')                # Abro el video
-width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))      # Meta-Información del video
-height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))    # No la usamos en este script,...
-fps = int(cap.get(cv2.CAP_PROP_FPS))                # ... pero puede ser útil en otras ocasiones
-n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))   #
-ret, frame = cap.read()
-cap.release() 
-while (cap.isOpened()):                                # Itero, siempre y cuando el video esté abierto
-    ret, frame = cap.read()                                             # Obtengo el frame
-    if ret==True: 
-        frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))  # Si el video es muy grande y al usar cv2.imshow() no entra en la pantalla, se lo puede escalar (solo para visualización!)
-        frame = drawlines(frame,width,height)                                                    # ret indica si la lectura fue exitosa (True) o no (False)
-        cv2.imshow('Frame',frame)                                       # Muestro el frame
-        if cv2.waitKey(25) & 0xFF == ord('q'): 
-            print('error')                         # Corto la repoducción si se presiona la tecla "q"
-            break
-    else:
-        print('error2')
-        break                                       # Corto la reproducción si ret=False, es decir, si hubo un error o no quedán mas frames.
-cap.release()                   # Cierro el video
-cv2.destroyAllWindows()         # Destruyo todas las ventanas abiertas
-
-
-#cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
-cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
-width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Meta-Información del video
-height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # No la usamos en este script,...
-fps = int(cap.get(cv2.CAP_PROP_FPS))  # ... pero puede ser útil en otras ocasiones
+cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
+#cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
 n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  #
 
 while cap.isOpened():  # Itero, siempre y cuando el video esté abierto
