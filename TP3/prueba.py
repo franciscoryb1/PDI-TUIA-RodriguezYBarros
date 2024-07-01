@@ -100,9 +100,9 @@ def drawlines(frame, width, height):
     f_mg = cv2.morphologyEx(edges1, cv2.MORPH_GRADIENT, kernel)
     Rho = 1                   # rho: resolución de la distancia en píxeles
     Theta = np.pi/180       # theta: resolución del ángulo en radianes
-    Threshold = 1             # threshold: número mínimo de intersecciones para detectar una línea
-    minLineLength = 1          # minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
-    maxLineGap = 1             # maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
+    Threshold = 100            # threshold: número mínimo de intersecciones para detectar una línea
+    minLineLength = 50          # minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
+    maxLineGap = 10             # maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
     # Aplicar la transformada de Hough probabilística
     lines = cv2.HoughLinesP(f_mg, Rho ,Theta,Threshold,minLineLength,maxLineGap)
 
@@ -138,13 +138,13 @@ def drawlines(frame, width, height):
     ## SI LA LINEA NO LLEGA HASTA EL PUNTO FINAL, PROBAR SI SE PUEDE ALARGAR 
     final = frame.copy()
     # Dibujar las líneas detectadas
-    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
-    cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
+    cv2.line(final, (x1, y1), (x2, y2), (255, 0, 0), 6)
+    cv2.line(final, (x1d, y1d), (x2d, y2d), (255, 0, 0), 6)
     return final
 
 
-cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
-# cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
+#cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
+cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
