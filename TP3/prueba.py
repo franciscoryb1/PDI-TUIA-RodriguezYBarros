@@ -31,23 +31,44 @@ def unir_segmentos(lines, umbral_x, umbral_y):
 
     # Ordenar por coordenada x inicial
     lines = sorted(lines, key=lambda line: line[0])
+        #prueba 3
 
-    merged_lines = []
-    current_line = lines[0]
-
-    for next_line in lines[1:]:
-        # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
-        if (abs(next_line[0] - current_line[2]) <= umbral_x) and (abs(next_line[1] - current_line[3]) <=umbral_y):
-            # Combinar los segmentos actualizando la coordenada final del segmento actual
-            current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
+    lineas_izq = []
+    lineas_der = []
+    for line in lines:
+        if line[0] < 500:
+            lineas_izq.append(line)
         else:
-            # Agregar la línea actual a las líneas combinadas y actualizar la línea actual
-            merged_lines.append(current_line)
-            current_line = next_line
+            lineas_der.append(line)
 
-    # Agregar la última línea
-    merged_lines.append(current_line)
+    x1, y1 = lineas_izq[0][0], lineas_izq[0][1]
+    lineas_izq = sorted(lineas_izq, key=lambda lineas_izq: lineas_izq[3])
+    x2, y2 = lineas_izq[0][2], lineas_izq[0][3]
 
+    x1d, y1d = lineas_der[0][0], lineas_der[0][1]
+    x2d, y2d = lineas_der[-1][2], lineas_der[-1][3]
+
+    final = frame.copy()
+    # Dibujar las líneas detectadas
+    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
+    cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
+    # imshow(final)
+
+    # merged_lines = []
+    # current_line = lines[0]
+ 
+    # for next_line in lines[1:]:
+    #     # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
+    #     if (abs(next_line[0] - current_line[2]) <= umbral_x) and (abs(next_line[1] - current_line[3]) <=umbral_y):
+    #         # Combinar los segmentos actualizando la coordenada final del segmento actual
+    #         current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
+    #     else:
+    #         # Agregar la línea actual a las líneas combinadas y actualizar la línea actual
+    #         merged_lines.append(current_line)
+    #         current_line = next_line
+
+    # # Agregar la última línea
+    # merged_lines.append(current_line)
     return merged_lines
 
 
@@ -91,16 +112,39 @@ def drawlines(frame, width, height):
     # Cada línea tiene la forma [x1, y1, x2, y2]
 
     # lines es la lista de líneas detectadas
-    merged_lines = unir_segmentos(lines, umbral_x=70, umbral_y= 20)
+    # merged_lines = unir_segmentos(lines, umbral_x=70, umbral_y= 20)
 
+    # Convertir las líneas en una lista de listas de tuplas
+    lines = [line[0] for line in lines]
+
+    # Ordenar por coordenada x inicial
+    lines = sorted(lines, key=lambda line: line[0])
+    
+    lineas_izq = []
+    lineas_der = []
+    for line in lines:
+        if line[0] < 500:
+            lineas_izq.append(line)
+        else:
+            lineas_der.append(line)
+
+    x1, y1 = lineas_izq[0][0], lineas_izq[0][1]
+    lineas_izq = sorted(lineas_izq, key=lambda lineas_izq: lineas_izq[3])
+    x2, y2 = lineas_izq[0][2], lineas_izq[0][3]
+
+    x1d, y1d = lineas_der[0][0], lineas_der[0][1]
+    x2d, y2d = lineas_der[-1][2], lineas_der[-1][3]
+
+    ## SI LA LINEA NO LLEGA HASTA EL PUNTO FINAL, PROBAR SI SE PUEDE ALARGAR 
+    final = frame.copy()
     # Dibujar las líneas detectadas
-    for linea in merged_lines:
-        x1, y1, x2, y2 = linea
-        cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 7)
+    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
+    cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
     return final
 
+
 cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
-#cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
+# cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))

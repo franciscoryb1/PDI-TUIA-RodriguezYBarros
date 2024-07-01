@@ -18,8 +18,8 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
     if new_fig:        
         plt.show(block=blocking)
 
-cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
-#cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
+# cap = cv2.VideoCapture('TP3/ruta_1.mp4')  # Abro el video
+cap = cv2.VideoCapture('TP3/ruta_2.mp4')  # Abro el video
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -136,3 +136,25 @@ imshow(final)
 
 
 #prueba 3
+lineas_izq = []
+lineas_der = []
+for line in lines:
+    if line[0] < 500:
+        lineas_izq.append(line)
+    else:
+        lineas_der.append(line)
+
+x1, y1 = lineas_izq[0][0], lineas_izq[0][1]
+lineas_izq = sorted(lineas_izq, key=lambda lineas_izq: lineas_izq[3])
+x2, y2 = lineas_izq[0][2], lineas_izq[0][3]
+
+x1d, y1d = lineas_der[0][0], lineas_der[0][1]
+x2d, y2d = lineas_der[-1][2], lineas_der[-1][3]
+
+## SI LA LINEA NO LLEGA HASTA EL PUNTO FINAL, PROBAR SI SE PUEDE ALARGAR 
+
+final = frame.copy()
+# Dibujar las líneas detectadas
+cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
+cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
+imshow(final)
