@@ -158,3 +158,54 @@ final = frame.copy()
 cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
 cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
 imshow(final)
+
+
+
+def unir_segmentos(lines, umbral_x, umbral_y):
+    if lines is None:
+        return []
+
+    # Convertir las líneas en una lista de listas de tuplas
+    lines = [line[0] for line in lines]
+
+    # Ordenar por coordenada x inicial
+    lines = sorted(lines, key=lambda line: line[0])
+        #prueba 3
+
+    lineas_izq = []
+    lineas_der = []
+    for line in lines:
+        if line[0] < 500:
+            lineas_izq.append(line)
+        else:
+            lineas_der.append(line)
+
+    x1, y1 = lineas_izq[0][0], lineas_izq[0][1]
+    lineas_izq = sorted(lineas_izq, key=lambda lineas_izq: lineas_izq[3])
+    x2, y2 = lineas_izq[0][2], lineas_izq[0][3]
+
+    x1d, y1d = lineas_der[0][0], lineas_der[0][1]
+    x2d, y2d = lineas_der[-1][2], lineas_der[-1][3]
+
+    final = frame.copy()
+    # Dibujar las líneas detectadas
+    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
+    cv2.line(final, (x1d, y1d), (x2d, y2d), (0, 255, 0), 4)
+    # imshow(final)
+
+    # merged_lines = []
+    # current_line = lines[0]
+ 
+    # for next_line in lines[1:]:
+    #     # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
+    #     if (abs(next_line[0] - current_line[2]) <= umbral_x) and (abs(next_line[1] - current_line[3]) <=umbral_y):
+    #         # Combinar los segmentos actualizando la coordenada final del segmento actual
+    #         current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
+    #     else:
+    #         # Agregar la línea actual a las líneas combinadas y actualizar la línea actual
+    #         merged_lines.append(current_line)
+    #         current_line = next_line
+
+    # # Agregar la última línea
+    # merged_lines.append(current_line)
+    return merged_lines
