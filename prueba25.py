@@ -61,7 +61,7 @@ imshow(clau)
 
 Rho = 1                   # rho: resolución de la distancia en píxeles
 Theta = np.pi/180       # theta: resolución del ángulo en radianes
-Threshold = 100             # threshold: número mínimo de intersecciones para detectar una línea
+Threshold = 150             # threshold: número mínimo de intersecciones para detectar una línea
 minLineLength = 50          # minLineLength: longitud mínima de la línea. Líneas más cortas que esto se descartan.
 maxLineGap = 10             # maxLineGap: brecha máxima entre segmentos para tratarlos como una sola línea
 # Aplicar la transformada de Hough probabilística
@@ -73,14 +73,16 @@ lines = [line[0] for line in lines]
 # Ordenar por coordenada x inicial
 lines = sorted(lines, key=lambda line: line[0])
 
-lines[1]
+lines
+
+len(lines)
 
 merged_lines = []
 current_line = lines[0]
 
 for next_line in lines[1:]:
     # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
-    if (abs(next_line[0] - current_line[2]) <= umbral_x) and (abs(next_line[1] - current_line[3]) <=umbral_y):
+    if (abs(next_line[0] - current_line[0]) <= 50) and (abs(next_line[1] - current_line[1]) <=50):
         # Combinar los segmentos actualizando la coordenada final del segmento actual
         current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
     else:
@@ -91,10 +93,31 @@ for next_line in lines[1:]:
 # Agregar la última línea
 merged_lines.append(current_line)
 
-return merged_lines
+len(merged_lines)
 
 
-lines[25]
+#FUNCION 2
+
+merged_lines2 = []
+current_line = merged_lines[0]
+
+for next_line in merged_lines[1:]:
+    # Verificar si el siguiente segmento está lo suficientemente cerca para ser combinado
+    if (abs(next_line[0] - current_line[2]) <= 100) and (abs(next_line[1] - current_line[3]) <=100):
+        # Combinar los segmentos actualizando la coordenada final del segmento actual
+        current_line = [current_line[0], current_line[1], next_line[2], next_line[3]]
+    else:
+        # Agregar la línea actual a las líneas combinadas y actualizar la línea actual
+        merged_lines2.append(current_line)
+        current_line = next_line
+
+# Agregar la última línea
+merged_lines2.append(current_line)
+
+len(merged_lines2)
+
+
+lines[1]
 
 final = frame.copy()
 
@@ -105,7 +128,11 @@ final = frame.copy()
 merged_lines = unir_segmentos(lines, umbral_x=70, umbral_y= 20)
 
 # Dibujar las líneas detectadas
-for linea in merged_lines:
+for linea in merged_lines2:
     x1, y1, x2, y2 = linea
-    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 7)
-return final
+    cv2.line(final, (x1, y1), (x2, y2), (0, 255, 0), 4)
+imshow(final)
+
+
+
+#prueba 3
